@@ -18,5 +18,10 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+  migrate:
+    build: .
+    command: ["go", "run", "app/migrate/migrate.go"]
+    depends_on:
+      - db
 volumes:
   postgres_data:
