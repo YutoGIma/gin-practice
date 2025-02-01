@@ -7,4 +7,6 @@ type Inventory struct {
 	// StoreId     int `json:"store_id"`
 	MinQuantity int `json:"min_quantity"`
 	MaxQuantity int `json:"max_quantity"`
+
+	Product Product `json:"product" gorm:"foreignKey:ProductId"`
 }

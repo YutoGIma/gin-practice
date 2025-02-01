@@ -12,6 +12,8 @@ type InventoryService struct {
 
 func (s *InventoryService) GetInventories() ([]model.Inventory, error) {
 	var inventories []model.Inventory
-	err := s.DB.Find(&inventories).Error
-	return inventories, err
+	if err := s.DB.Preload("Product").Find(&inventories).Error; err != nil {
+		return nil, err
+	}
+	return inventories, nil
 }
