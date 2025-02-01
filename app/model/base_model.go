@@ -18,6 +18,8 @@ type BaseModel struct {
 func GetModels() []interface{} {
 	return []interface{}{
 		&User{},
+		&Inventory{},
+		&Product{},
 		// 他のモデルを追加する場合は、ここに追加します
 		// &Product{},
 	}

@@ -3,7 +3,8 @@ package service
 import "gorm.io/gorm"
 
 type BaseService struct {
-	UserService *UserService
+	UserService      *UserService
+	InventoryService *InventoryService
 	// 他のサービスを追加する場合は、ここにフィールドを追加します
 	// Example:
 	// ProductService *ProductService
@@ -11,7 +12,8 @@ type BaseService struct {
 
 func NewBaseService(db *gorm.DB) *BaseService {
 	return &BaseService{
-		UserService: &UserService{DB: db},
+		UserService:      &UserService{DB: db},
+		InventoryService: &InventoryService{DB: db},
 		// 他のサービスの初期化を追加します
 		// Example:
 		// ProductService: &ProductService{DB: db},
