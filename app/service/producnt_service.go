@@ -15,3 +15,7 @@ func (s *ProductService) GetProducts() ([]model.Product, error) {
 	err := s.DB.Find(&products).Error
 	return products, err
 }
+
+func (s *ProductService) CreateProduct(product *model.Product) error {
+	return s.DB.Create(product).Error
+}

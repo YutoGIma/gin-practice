@@ -13,8 +13,9 @@ func SetupRouter(baseController *controller.BaseController) *gin.Engine {
 	r.GET("/users/:id", baseController.UserController.GetUserDetail)
 	r.PUT("/users/:id", baseController.UserController.UpdateUser)
 	r.DELETE("/users/:id", baseController.UserController.DeleteUser)
-	r.GET("/inventories", baseController.InventoryController.GetInventories)
 	r.GET("/products", baseController.ProductController.GetProducts)
+	r.POST("/products", baseController.ProductController.CreateProduct)
+	r.GET("/inventories", baseController.InventoryController.GetInventories)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",

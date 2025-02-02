@@ -1,10 +1,9 @@
 package model
 
 import (
+	"errors"
 	"regexp"
 	"strconv"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type Product struct {
@@ -15,19 +14,17 @@ type Product struct {
 	PurchasePrice float64 `json:"purchase_price" validate:"required,gte=0"`
 }
 
-// ValidateJAN13 JANコード(13桁)のバリデーション
-func ValidateJAN13(fl validator.FieldLevel) bool {
-	barcode := fl.Field().String()
+func ValidateCreateProduct(p Product) error {
 	// 13桁の数字かチェック
-	match, _ := regexp.MatchString(`^[0-9]{13}$`, barcode)
+	match, _ := regexp.MatchString(`^[0-9]{13}$`, p.Barcode)
 	if !match {
-		return false
+		return errors.New("バーコードは13桁の数字で入力してください")
 	}
 
 	// チェックディジットの検証
 	sum := 0
 	for i := 0; i < 12; i++ {
-		digit, _ := strconv.Atoi(string(barcode[i]))
+		digit, _ := strconv.Atoi(string(p.Barcode[i]))
 		if i%2 == 0 {
 			sum += digit
 		} else {
@@ -35,7 +32,9 @@ func ValidateJAN13(fl validator.FieldLevel) bool {
 		}
 	}
 	checkDigit := (10 - (sum % 10)) % 10
-	lastDigit, _ := strconv.Atoi(string(barcode[12]))
-
-	return checkDigit == lastDigit
+	lastDigit, _ := strconv.Atoi(string(p.Barcode[12]))
+	if checkDigit != lastDigit {
+		return errors.New("正しいバーコードを入力してください")
+	}
+	return nil
 }
