@@ -19,3 +19,11 @@ func (s *ProductService) GetProducts() ([]model.Product, error) {
 func (s *ProductService) CreateProduct(product *model.Product) error {
 	return s.DB.Create(product).Error
 }
+
+func (s *ProductService) UpdateProduct(product *model.Product) error {
+	return s.DB.Save(product).Error
+}
+
+func (s *ProductService) DeleteProduct(id int) error {
+	return s.DB.Delete(&model.Product{}, id).Error
+}
