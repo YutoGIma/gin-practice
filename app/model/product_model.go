@@ -10,7 +10,7 @@ type Product struct {
 	BaseModel
 	Name          string  `json:"name" validate:"required"`
 	Barcode       string  `json:"barcode" validate:"required,jan13" gorm:"uniqueIndex"`
-	CategoryId    int     `json:"master_item_type_id" validate:"required"`
+	CategoryId    int     `json:"category_id" validate:"required"`
 	PurchasePrice float64 `json:"purchase_price" validate:"required,gte=0"`
 }
 

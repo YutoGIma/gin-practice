@@ -2,7 +2,7 @@ package model
 
 type Inventory struct {
 	BaseModel
-	ProductId int `json:"stock_id"`
+	ProductId int `json:"product_id"`
 	Quantity  int `json:"quantity"`
 	// StoreId     int `json:"store_id"`
 	MinQuantity int `json:"min_quantity"`

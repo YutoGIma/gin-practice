@@ -10,10 +10,10 @@ import (
 )
 
 type UserController struct {
-	UserService *service.UserService
+	UserService service.UserService
 }
 
-func (c *UserController) GetUsers(ctx *gin.Context) {
+func (c UserController) GetUsers(ctx *gin.Context) {
 	users, err := c.UserService.GetUsers()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -22,7 +22,7 @@ func (c *UserController) GetUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
-func (c *UserController) GetUserDetail(ctx *gin.Context) {
+func (c UserController) GetUserDetail(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
@@ -36,20 +36,20 @@ func (c *UserController) GetUserDetail(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
-func (c *UserController) CreateUser(ctx *gin.Context) {
+func (c UserController) CreateUser(ctx *gin.Context) {
 	var user model.User
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.UserService.CreateUser(&user); err != nil {
+	if err := c.UserService.CreateUser(user); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
 }
 
-func (c *UserController) UpdateUser(ctx *gin.Context) {
+func (c UserController) UpdateUser(ctx *gin.Context) {
 	var user model.User
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
@@ -61,14 +61,14 @@ func (c *UserController) UpdateUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := c.UserService.UpdateUser(&user); err != nil {
+	if err := c.UserService.UpdateUser(user); err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
 }
 
-func (c *UserController) DeleteUser(ctx *gin.Context) {
+func (c UserController) DeleteUser(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
