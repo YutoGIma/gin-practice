@@ -18,9 +18,12 @@ type BaseController struct {
 func NewBaseController(db *gorm.DB) *BaseController {
 	baseService := service.NewBaseService(db)
 	return &BaseController{
-		UserController:      UserController{UserService: baseService.UserService},
-		InventoryController: InventoryController{InventoryService: baseService.InventoryService},
-		ProductController:   ProductController{ProductService: baseService.ProductService},
+		UserController: UserController{UserService: baseService.UserService},
+		InventoryController: InventoryController{
+			InventoryService: baseService.InventoryService,
+			ProductService:   baseService.ProductService,
+		},
+		ProductController: ProductController{ProductService: baseService.ProductService},
 		// 他のコントローラーの初期化を追加します
 		// Example:
 		// ProductController: &ProductController{ProductService: productService},
