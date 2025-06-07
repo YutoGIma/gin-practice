@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"myapp/app/errors"
 	"myapp/app/model"
-	"myapp/app/service"
+	"myapp/app/usecase"
 	"net/http"
 	"strconv"
 
@@ -10,66 +11,90 @@ import (
 )
 
 type ProductController struct {
-	ProductService service.ProductService
+	productUseCase *usecase.ProductUseCase
 }
 
-func (c ProductController) GetProducts(ctx *gin.Context) {
-	products, err := c.ProductService.GetProducts()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+func NewProductController(productUseCase *usecase.ProductUseCase) *ProductController {
+	return &ProductController{
+		productUseCase: productUseCase,
 	}
-	ctx.JSON(http.StatusOK, products)
 }
 
-func (c ProductController) CreateProduct(ctx *gin.Context) {
-	var product model.Product
-	if err := ctx.ShouldBindJSON(&product); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+func (c *ProductController) Create(ctx *gin.Context) {
+	var input model.Product
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.Error(errors.NewValidationError("Invalid input"))
 		return
 	}
-	err := model.ValidateCreateProduct(product)
+
+	result, err := c.productUseCase.Create(input)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(err)
 		return
 	}
-	if err := c.ProductService.CreateProduct(product); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-	ctx.JSON(http.StatusOK, product)
+
+	ctx.JSON(201, result)
 }
 
-func (c ProductController) UpdateProduct(ctx *gin.Context) {
-	var product model.Product
-	id, err := strconv.Atoi(ctx.Param("id"))
+func (c *ProductController) Update(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid product ID"})
+		ctx.Error(errors.NewValidationError("Invalid ID"))
 		return
 	}
-	product.ID = uint(id)
-	if err := ctx.ShouldBindJSON(&product); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+
+	var input model.Product
+	if err := ctx.ShouldBindJSON(&input); err != nil {
+		ctx.Error(errors.NewValidationError("Invalid input"))
 		return
 	}
-	err = c.ProductService.UpdateProduct(product)
+
+	result, err := c.productUseCase.Update(uint(id), input)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, product)
+
+	ctx.JSON(200, result)
 }
 
-func (c ProductController) DeleteProduct(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+func (c *ProductController) Delete(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		ctx.Error(errors.NewValidationError("Invalid ID"))
 		return
 	}
-	err = c.ProductService.DeleteProduct(id)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	if err := c.productUseCase.Delete(uint(id)); err != nil {
+		ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "Product deleted successfully"})
+
+	ctx.Status(204)
+}
+
+func (c *ProductController) GetByID(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		ctx.Error(errors.NewValidationError("Invalid ID"))
+		return
+	}
+
+	result, err := c.productUseCase.GetByID(uint(id))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(200, result)
+}
+
+func (c *ProductController) List(ctx *gin.Context) {
+	result, err := c.productUseCase.List()
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(200, result)
 }
