@@ -1,6 +1,7 @@
 package infra
 
 import (
+	"myapp/app/infra/seed"
 	"myapp/app/model"
 
 	"gorm.io/driver/postgres"
@@ -20,5 +21,10 @@ func SetupDB() *gorm.DB {
 func DBMigration(db *gorm.DB) {
 	if err := db.AutoMigrate(model.GetModels()...); err != nil {
 		panic("Failed to migrate database: " + err.Error())
+	}
+
+	// シードデータの追加
+	if err := seed.SeedData(db); err != nil {
+		panic("Failed to seed data: " + err.Error())
 	}
 }
