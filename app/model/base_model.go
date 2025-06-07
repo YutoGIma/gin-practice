@@ -20,6 +20,7 @@ func GetModels() []interface{} {
 		User{},
 		Inventory{},
 		Product{},
+		Tenant{},
 		// 他のモデルを追加する場合は、ここに追加します
 		// &Product{},
 	}

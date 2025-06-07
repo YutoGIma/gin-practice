@@ -16,8 +16,3 @@ type Tenant struct {
 	OpenedAt    time.Time  `json:"opened_at"`
 	ClosedAt    *time.Time `json:"closed_at,omitempty"`
 }
-
-// GetModels にテナントモデルを追加
-func init() {
-	models = append(models, &Tenant{})
-}
