@@ -12,8 +12,6 @@ type Product struct {
 	Barcode       string  `json:"barcode" validate:"required,jan13" gorm:"uniqueIndex"`
 	CategoryId    int     `json:"category_id" validate:"required"`
 	PurchasePrice float64 `json:"purchase_price" validate:"required,gte=0"`
-	TenantID      uint    `json:"tenant_id" validate:"required"`
-	Tenant        Tenant  `json:"tenant" gorm:"foreignKey:TenantID"`
 }
 
 func ValidateCreateProduct(p Product) error {

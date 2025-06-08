@@ -1,19 +1,20 @@
 package usecase
 
 import (
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 	"myapp/app/errors"
 	"myapp/app/model"
+	"myapp/app/service"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserUseCase struct {
-	db *gorm.DB
+	userService service.UserService
 }
 
-func NewUserUseCase(db *gorm.DB) *UserUseCase {
-	return &UserUseCase{
-		db: db,
+func NewUserUseCase(userService service.UserService) UserUseCase {
+	return UserUseCase{
+		userService: userService,
 	}
 }
 
@@ -25,15 +26,15 @@ func (uc *UserUseCase) Create(input model.User) (*model.User, error) {
 	}
 	input.Password = string(hashedPassword)
 
-	if err := uc.db.Create(&input).Error; err != nil {
+	if err := uc.userService.CreateUser(input); err != nil {
 		return nil, errors.NewInternalError("Failed to create user", err)
 	}
 	return &input, nil
 }
 
 func (uc *UserUseCase) Update(id uint, input model.User) (*model.User, error) {
-	var user model.User
-	if err := uc.db.First(&user, id).Error; err != nil {
+	user, err := uc.userService.GetUserDetail(id)
+	if err != nil {
 		return nil, errors.NewNotFoundError("User not found")
 	}
 
@@ -46,7 +47,7 @@ func (uc *UserUseCase) Update(id uint, input model.User) (*model.User, error) {
 		input.Password = string(hashedPassword)
 	}
 
-	if err := uc.db.Model(&user).Updates(input).Error; err != nil {
+	if err := uc.userService.UpdateUser(input); err != nil {
 		return nil, errors.NewInternalError("Failed to update user", err)
 	}
 
@@ -54,45 +55,37 @@ func (uc *UserUseCase) Update(id uint, input model.User) (*model.User, error) {
 }
 
 func (uc *UserUseCase) Delete(id uint) error {
-	if err := uc.db.Delete(&model.User{}, id).Error; err != nil {
+	if err := uc.userService.DeleteUser(id); err != nil {
 		return errors.NewInternalError("Failed to delete user", err)
 	}
 	return nil
 }
 
 func (uc *UserUseCase) GetByID(id uint) (*model.User, error) {
-	var user model.User
-	if err := uc.db.First(&user, id).Error; err != nil {
-		return nil, errors.NewNotFoundError("User not found")
-	}
-	return &user, nil
-}
-
-func (uc *UserUseCase) GetByEmail(email string) (*model.User, error) {
-	var user model.User
-	if err := uc.db.Where("email = ?", email).First(&user).Error; err != nil {
+	user, err := uc.userService.GetUserDetail(id)
+	if err != nil {
 		return nil, errors.NewNotFoundError("User not found")
 	}
 	return &user, nil
 }
 
 func (uc *UserUseCase) List() ([]model.User, error) {
-	var users []model.User
-	if err := uc.db.Find(&users).Error; err != nil {
+	users, err := uc.userService.GetUsers()
+	if err != nil {
 		return nil, errors.NewInternalError("Failed to list users", err)
 	}
 	return users, nil
 }
 
-func (uc *UserUseCase) Authenticate(email, password string) (*model.User, error) {
-	user, err := uc.GetByEmail(email)
-	if err != nil {
-		return nil, errors.NewValidationError("Invalid email or password")
-	}
+// func (uc *UserUseCase) Authenticate(email, password string) (*model.User, error) {
+// 	user, err := uc.GetByEmail(email)
+// 	if err != nil {
+// 		return nil, errors.NewValidationError("Invalid email or password")
+// 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, errors.NewValidationError("Invalid email or password")
-	}
+// 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+// 		return nil, errors.NewValidationError("Invalid email or password")
+// 	}
 
-	return user, nil
-}
+// 	return user, nil
+// }

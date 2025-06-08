@@ -6,6 +6,7 @@ import (
 	"myapp/app/infra"
 	"myapp/app/middleware"
 	"myapp/app/routes"
+	"myapp/app/service"
 	"myapp/app/usecase"
 
 	"github.com/gin-gonic/gin"
@@ -20,14 +21,14 @@ func main() {
 	db := infra.SetupDB()
 	db.AutoMigrate()
 
+	// Services
+	baseService := service.NewBaseService(db)
+
 	// Use cases
-	productUseCase := usecase.NewProductUseCase(db)
-	tenantUseCase := usecase.NewTenantUseCase(db)
-	inventoryUseCase := usecase.NewInventoryUseCase(db)
-	userUseCase := usecase.NewUserUseCase(db)
+	baseUseCase := usecase.NewBaseUseCase(baseService)
 
 	// Controllers
-	productController := controller.NewProductController(productUseCase)
+	baseController := controller.NewBaseController(baseUseCase)
 
 	// Router setup
 	r := gin.New()
@@ -35,7 +36,7 @@ func main() {
 	r.Use(middleware.Logger(logger))
 	r.Use(middleware.ErrorHandler())
 
-	routes.SetupRouter(r, productController)
+	r = routes.SetupRouter(baseController)
 
 	r.Run(":" + cfg.ServerPort)
 }

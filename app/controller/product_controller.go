@@ -4,23 +4,32 @@ import (
 	"myapp/app/errors"
 	"myapp/app/model"
 	"myapp/app/usecase"
-	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type ProductController struct {
-	productUseCase *usecase.ProductUseCase
+	productUseCase usecase.ProductUseCase
 }
 
-func NewProductController(productUseCase *usecase.ProductUseCase) *ProductController {
-	return &ProductController{
+func NewProductController(productUseCase usecase.ProductUseCase) ProductController {
+	return ProductController{
 		productUseCase: productUseCase,
 	}
 }
 
-func (c *ProductController) Create(ctx *gin.Context) {
+func (c *ProductController) GetProducts(ctx *gin.Context) {
+	result, err := c.productUseCase.List()
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+
+	ctx.JSON(200, result)
+}
+
+func (c *ProductController) CreateProduct(ctx *gin.Context) {
 	var input model.Product
 	if err := ctx.ShouldBindJSON(&input); err != nil {
 		ctx.Error(errors.NewValidationError("Invalid input"))
@@ -36,7 +45,7 @@ func (c *ProductController) Create(ctx *gin.Context) {
 	ctx.JSON(201, result)
 }
 
-func (c *ProductController) Update(ctx *gin.Context) {
+func (c *ProductController) UpdateProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.Error(errors.NewValidationError("Invalid ID"))
@@ -58,7 +67,7 @@ func (c *ProductController) Update(ctx *gin.Context) {
 	ctx.JSON(200, result)
 }
 
-func (c *ProductController) Delete(ctx *gin.Context) {
+func (c *ProductController) DeleteProduct(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.Error(errors.NewValidationError("Invalid ID"))
@@ -73,7 +82,7 @@ func (c *ProductController) Delete(ctx *gin.Context) {
 	ctx.Status(204)
 }
 
-func (c *ProductController) GetByID(ctx *gin.Context) {
+func (c *ProductController) GetProductDetail(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
 		ctx.Error(errors.NewValidationError("Invalid ID"))
@@ -81,16 +90,6 @@ func (c *ProductController) GetByID(ctx *gin.Context) {
 	}
 
 	result, err := c.productUseCase.GetByID(uint(id))
-	if err != nil {
-		ctx.Error(err)
-		return
-	}
-
-	ctx.JSON(200, result)
-}
-
-func (c *ProductController) List(ctx *gin.Context) {
-	result, err := c.productUseCase.List()
 	if err != nil {
 		ctx.Error(err)
 		return

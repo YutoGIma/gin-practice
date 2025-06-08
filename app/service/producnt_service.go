@@ -10,13 +10,19 @@ type ProductService struct {
 	DB *gorm.DB
 }
 
+func NewProductService(db *gorm.DB) ProductService {
+	return ProductService{
+		DB: db,
+	}
+}
+
 func (s ProductService) GetProducts() ([]model.Product, error) {
 	var products []model.Product
 	err := s.DB.Find(&products).Error
 	return products, err
 }
 
-func (s ProductService) GetProductDetail(id int) (model.Product, error) {
+func (s ProductService) GetProductDetail(id uint) (model.Product, error) {
 	var product model.Product
 	err := s.DB.First(&product, id).Error
 	return product, err
@@ -30,6 +36,6 @@ func (s ProductService) UpdateProduct(product model.Product) error {
 	return s.DB.Save(&product).Error
 }
 
-func (s ProductService) DeleteProduct(id int) error {
+func (s ProductService) DeleteProduct(id uint) error {
 	return s.DB.Delete(&model.Product{}, id).Error
 }

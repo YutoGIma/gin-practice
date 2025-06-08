@@ -1,82 +1,94 @@
 package controller
 
 import (
+	"myapp/app/errors"
 	"myapp/app/model"
-	"myapp/app/service"
-	"net/http"
+	"myapp/app/usecase"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type UserController struct {
-	UserService service.UserService
+	userUseCase usecase.UserUseCase
 }
 
-func (c UserController) GetUsers(ctx *gin.Context) {
-	users, err := c.UserService.GetUsers()
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+func NewUserController(userUseCase usecase.UserUseCase) UserController {
+	return UserController{
+		userUseCase: userUseCase,
 	}
-	ctx.JSON(http.StatusOK, users)
 }
 
-func (c UserController) GetUserDetail(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+func (c *UserController) GetUsers(ctx *gin.Context) {
+	users, err := c.userUseCase.List()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		ctx.Error(err)
 		return
 	}
-	user, err := c.UserService.GetUser(uint(id))
-	if err != nil {
-		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		return
-	}
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(200, users)
 }
 
-func (c UserController) CreateUser(ctx *gin.Context) {
+func (c *UserController) GetUserDetail(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		ctx.Error(errors.NewValidationError("Invalid user ID"))
+		return
+	}
+
+	user, err := c.userUseCase.GetByID(uint(id))
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(200, user)
+}
+
+func (c *UserController) CreateUser(ctx *gin.Context) {
 	var user model.User
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(errors.NewValidationError("Invalid input"))
 		return
 	}
-	if err := c.UserService.CreateUser(user); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	result, err := c.userUseCase.Create(user)
+	if err != nil {
+		ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(201, result)
 }
 
-func (c UserController) UpdateUser(ctx *gin.Context) {
+func (c *UserController) UpdateUser(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		ctx.Error(errors.NewValidationError("Invalid user ID"))
+		return
+	}
+
 	var user model.User
-	id, err := strconv.Atoi(ctx.Param("id"))
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
-		return
-	}
-	user.ID = uint(id)
 	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.Error(errors.NewValidationError("Invalid input"))
 		return
 	}
-	if err := c.UserService.UpdateUser(user); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	result, err := c.userUseCase.Update(uint(id), user)
+	if err != nil {
+		ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, user)
+	ctx.JSON(200, result)
 }
 
-func (c UserController) DeleteUser(ctx *gin.Context) {
-	id, err := strconv.Atoi(ctx.Param("id"))
+func (c *UserController) DeleteUser(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		ctx.Error(errors.NewValidationError("Invalid user ID"))
 		return
 	}
-	if err := c.UserService.DeleteUser(uint(id)); err != nil {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+
+	if err := c.userUseCase.Delete(uint(id)); err != nil {
+		ctx.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted"})
+	ctx.Status(204)
 }

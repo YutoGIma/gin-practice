@@ -1,22 +1,23 @@
 package seed
 
 import (
-	"gorm.io/gorm"
 	"myapp/app/model"
+
+	"gorm.io/gorm"
 )
 
 func SeedInventories(db *gorm.DB) error {
 	inventories := []model.Inventory{
 		{
-			ProductId: 1,
+			ProductID: 1,
 			Quantity:  100,
 		},
 		{
-			ProductId: 2,
+			ProductID: 2,
 			Quantity:  50,
 		},
 		{
-			ProductId: 3,
+			ProductID: 3,
 			Quantity:  75,
 		},
 	}

@@ -10,6 +10,12 @@ type UserService struct {
 	DB *gorm.DB
 }
 
+func NewUserService(db *gorm.DB) UserService {
+	return UserService{
+		DB: db,
+	}
+}
+
 func (s UserService) GetUsers() ([]model.User, error) {
 	var users []model.User
 	err := s.DB.Find(&users).Error
@@ -20,7 +26,7 @@ func (s UserService) CreateUser(user model.User) error {
 	return s.DB.Create(&user).Error
 }
 
-func (s UserService) GetUser(id uint) (model.User, error) {
+func (s UserService) GetUserDetail(id uint) (model.User, error) {
 	var user model.User
 	err := s.DB.First(&user, id).Error
 	return user, err

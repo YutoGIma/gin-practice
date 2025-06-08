@@ -1,31 +1,21 @@
 package controller
 
 import (
-	"myapp/app/service"
-
-	"gorm.io/gorm"
+	"myapp/app/usecase"
 )
 
 type BaseController struct {
 	UserController      UserController
 	InventoryController InventoryController
 	ProductController   ProductController
-	// 他のコントローラーを追加する場合は、ここにフィールドを追加します
-	// Example:
-	// ProductController *ProductController
+	TenantController    TenantController
 }
 
-func NewBaseController(db *gorm.DB) *BaseController {
-	baseService := service.NewBaseService(db)
-	return &BaseController{
-		UserController: UserController{UserService: baseService.UserService},
-		InventoryController: InventoryController{
-			InventoryService: baseService.InventoryService,
-			ProductService:   baseService.ProductService,
-		},
-		ProductController: ProductController{ProductService: baseService.ProductService},
-		// 他のコントローラーの初期化を追加します
-		// Example:
-		// ProductController: &ProductController{ProductService: productService},
+func NewBaseController(baseUseCase usecase.BaseUseCase) BaseController {
+	return BaseController{
+		UserController:      NewUserController(baseUseCase.UserUseCase),
+		InventoryController: NewInventoryController(baseUseCase.InventoryUseCase),
+		ProductController:   NewProductController(baseUseCase.ProductUseCase),
+		TenantController:    NewTenantController(baseUseCase.TenantUseCase),
 	}
 }

@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(baseController *controller.BaseController) *gin.Engine {
+func SetupRouter(baseController controller.BaseController) *gin.Engine {
 	r := gin.Default()
 	r.GET("/users", baseController.UserController.GetUsers)
 	r.GET("/users/:id", baseController.UserController.GetUserDetail)
@@ -19,8 +19,13 @@ func SetupRouter(baseController *controller.BaseController) *gin.Engine {
 	r.DELETE("/products/:id", baseController.ProductController.DeleteProduct)
 	r.GET("/inventories", baseController.InventoryController.GetInventories)
 	r.POST("/inventories", baseController.InventoryController.CreateInventory)
-	r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
+	// r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
 	r.DELETE("/inventories/:id", baseController.InventoryController.DeleteInventory)
+	r.GET("/tenants", baseController.TenantController.GetTenants)
+	// r.GET("/tenants/:id", baseController.TenantController.GetTenantDetail)
+	r.POST("/tenants", baseController.TenantController.CreateTenant)
+	r.PUT("/tenants/:id", baseController.TenantController.UpdateTenant)
+	r.DELETE("/tenants/:id", baseController.TenantController.DeleteTenant)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",

@@ -1,8 +1,9 @@
 package seed
 
 import (
-	"gorm.io/gorm"
 	"myapp/app/model"
+
+	"gorm.io/gorm"
 )
 
 func SeedProducts(db *gorm.DB) error {
