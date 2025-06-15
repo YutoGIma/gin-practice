@@ -1,0 +1,145 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Gin Practice Project Documentation
+
+## プロジェクト概要
+このプロジェクトは、Ginフレームワークを使用したGo言語のWebアプリケーションです。クリーンアーキテクチャを採用し、Dockerコンテナ化された環境で動作します。
+
+## アーキテクチャ
+
+```mermaid
+graph TD
+    subgraph プレゼンテーション層
+        A[Controller] --> B[Middleware]
+        B --> C[Routes]
+    end
+
+    subgraph アプリケーション層
+        D[UseCase] --> E[Service]
+    end
+
+    subgraph ドメイン層
+        F[Model] --> G[Errors]
+    end
+
+    subgraph インフラストラクチャ層
+        H[Infra] --> I[Config]
+        H --> J[Migrate]
+    end
+
+    A --> D
+    D --> F
+    E --> H
+```
+
+## ディレクトリ構造
+gin-practice/
+├── app/
+│ ├── config/ # 設定管理
+│ ├── controller/ # HTTPリクエスト処理
+│ ├── errors/ # カスタムエラー定義
+│ ├── infra/ # インフラストラクチャ
+│ ├── middleware/ # ミドルウェア
+│ ├── migrate/ # データベースマイグレーション
+│ ├── model/ # ドメインモデル
+│ ├── routes/ # ルーティング
+│ ├── service/ # データアクセス
+│ └── usecase/ # ビジネスロジック
+├── main.go # アプリケーションエントリーポイント
+├── go.mod # Goモジュール定義
+├── go.sum # 依存関係チェックサム
+├── Dockerfile # コンテナ定義
+└── docker-compose.yml # コンテナ構成
+
+## レイヤー別責務
+
+### プレゼンテーション層
+- **Controller**: HTTPリクエストの処理、レスポンスの生成、バリデーション、エラーハンドリング
+- **Middleware**: ロギング、エラーハンドリング、認証・認可
+- **Routes**: エンドポイント定義、ミドルウェア適用
+
+### アプリケーション層
+- **UseCase**: ビジネスロジック実装、トランザクション管理、ドメインロジックの組み合わせ
+- **Service**: データアクセス層とのインターフェース、データベース操作、外部サービス連携
+
+### ドメイン層
+- **Model**: エンティティ定義、バリューオブジェクト、ドメインルール
+- **Errors**: カスタムエラー定義、エラーメッセージ
+
+### インフラストラクチャ層
+- **Infra**: データベース接続、外部サービス連携
+- **Config**: 環境変数管理、アプリケーション設定
+- **Migrate**: スキーマ定義、シードデータ
+
+## コーディング規約
+
+### 命名規則
+- ファイル名: 小文字のスネークケース（例: `user_controller.go`）
+- パッケージ名: 小文字のスネークケース（例: `controller`）
+- 構造体名: 大文字始まりのキャメルケース（例: `UserController`）
+- メソッド名: 大文字始まりのキャメルケース（例: `GetUser`）
+- 変数名: 小文字始まりのキャメルケース（例: `userID`）
+
+### インポート順序
+1. 内部パッケージ（`myapp/app/...`）
+2. 外部パッケージ（`github.com/...`）
+3. 標準ライブラリ
+
+### エラーハンドリング
+- エラーは適切にハンドリングし、エラーメッセージを含める
+- カスタムエラーを使用して、アプリケーション固有のエラーを定義
+
+### コメント規則
+- パッケージには説明コメントを付ける
+- エクスポートされた関数には説明コメントを付ける
+- 複雑なロジックには適切なコメントを付ける
+
+### テスト規則
+- テストファイルは `_test.go` で終わる
+- テスト関数は `Test` で始まり、テスト対象の関数名を含める
+- テーブル駆動テストを推奨
+
+## 開発環境
+
+### 必要なツール
+- Go 1.22以上
+- Docker
+- Docker Compose
+
+### 環境変数
+```env
+DB_HOST=db
+DB_PORT=5432
+DB_USER=user
+DB_PASSWORD=password
+DB_NAME=myapp
+SERVER_PORT=8080
+ENV=development
+```
+
+### 起動方法
+1. コンテナのビルドと起動
+```bash
+docker-compose up --build
+```
+
+2. マイグレーションの実行
+```bash
+docker-compose run migrate
+```
+
+## デプロイメント
+
+### 本番環境
+- 環境変数の適切な設定
+- セキュリティ設定の確認
+- ログ設定の確認
+
+### 監視
+- アプリケーションログ
+- データベースログ
+
+- システムメトリクス
