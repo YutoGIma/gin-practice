@@ -3,6 +3,7 @@ package controller
 import (
 	"myapp/app/model"
 	"myapp/app/usecase"
+	"myapp/app/usecase/request"
 	"net/http"
 	"strconv"
 
@@ -71,13 +72,27 @@ func (c InventoryController) CreateInventory(ctx *gin.Context) {
 // 		return
 // 	}
 
-// 	updatedInventory, err := c.inventoryUseCase.Update(uint(id), inventory)
-// 	if err != nil {
+// 	inventory.ID = uint(id)
+// 	if err := c.inventoryUseCase.Update(inventory); err != nil {
 // 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 // 		return
 // 	}
-// 	ctx.JSON(http.StatusOK, updatedInventory)
+// 	ctx.JSON(http.StatusOK, inventory)
 // }
+
+func (c InventoryController) UpdateInventoryOnPurchase(ctx *gin.Context) {
+	var req request.InventoryPurchaseRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := c.inventoryUseCase.UpdateOnPurchase(req); err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "Inventory updated successfully"})
+}
 
 func (c InventoryController) DeleteInventory(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)

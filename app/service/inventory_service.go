@@ -43,3 +43,15 @@ func (s *InventoryService) UpdateInventory(inventory model.Inventory) error {
 func (s *InventoryService) DeleteInventory(id uint) error {
 	return s.DB.Delete(&model.Inventory{}, id).Error
 }
+
+func (s *InventoryService) GetInventoryByProductAndTenant(productID, tenantID uint) (*model.Inventory, error) {
+	var inventory model.Inventory
+	if err := s.DB.Where("product_id = ? AND tenant_id = ?", productID, tenantID).First(&inventory).Error; err != nil {
+		return nil, err
+	}
+	return &inventory, nil
+}
+
+func (s *InventoryService) SaveInventory(inventory *model.Inventory) error {
+	return s.DB.Save(inventory).Error
+}

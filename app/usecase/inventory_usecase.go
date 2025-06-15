@@ -4,6 +4,7 @@ import (
 	"myapp/app/errors"
 	"myapp/app/model"
 	"myapp/app/service"
+	"myapp/app/usecase/request"
 )
 
 type InventoryUseCase struct {
@@ -51,5 +52,31 @@ func (uc *InventoryUseCase) Delete(id uint) error {
 	if err := uc.inventoryService.DeleteInventory(id); err != nil {
 		return errors.NewInternalError("Failed to delete inventory", err)
 	}
+	return nil
+}
+
+func (uc *InventoryUseCase) UpdateOnPurchase(req request.InventoryPurchaseRequest) error {
+	// リクエストのバリデーション
+	if err := req.Validate(); err != nil {
+		return errors.NewValidationError(err.Error())
+	}
+
+	// 1. 対象のInventoryを取得
+	inventory, err := uc.inventoryService.GetInventoryByProductAndTenant(req.ProductID, req.TenantID)
+	if err != nil {
+		return errors.NewNotFoundError("Inventory not found")
+	}
+
+	// 2. 在庫数のバリデーション
+	if inventory.Quantity < req.Quantity {
+		return errors.NewValidationError("Insufficient inventory")
+	}
+
+	// 3. 在庫数を更新
+	inventory.Quantity -= req.Quantity
+	if err := uc.inventoryService.SaveInventory(inventory); err != nil {
+		return errors.NewInternalError("Failed to update inventory", err)
+	}
+
 	return nil
 }
