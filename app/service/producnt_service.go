@@ -28,6 +28,15 @@ func (s ProductService) GetProductDetail(id uint) (model.Product, error) {
 	return product, err
 }
 
+func (s ProductService) GetProductByID(id uint) (*model.Product, error) {
+	var product model.Product
+	err := s.DB.First(&product, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
+}
+
 func (s ProductService) CreateProduct(product model.Product) error {
 	return s.DB.Create(&product).Error
 }

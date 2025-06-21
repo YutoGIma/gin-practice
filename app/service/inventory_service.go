@@ -55,3 +55,7 @@ func (s *InventoryService) GetInventoryByProductAndTenant(productID, tenantID ui
 func (s *InventoryService) SaveInventory(inventory *model.Inventory) error {
 	return s.DB.Save(inventory).Error
 }
+
+func (s *InventoryService) UpdateInventoryWithTx(tx *gorm.DB, inventory *model.Inventory) error {
+	return tx.Save(inventory).Error
+}

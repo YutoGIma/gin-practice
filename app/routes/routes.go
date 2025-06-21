@@ -20,13 +20,17 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 	r.GET("/inventories", baseController.InventoryController.GetInventories)
 	r.POST("/inventories", baseController.InventoryController.CreateInventory)
 	// r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
-	r.POST("/inventories/purchase", baseController.InventoryController.UpdateInventoryOnPurchase)
 	r.DELETE("/inventories/:id", baseController.InventoryController.DeleteInventory)
 	r.GET("/tenants", baseController.TenantController.GetTenants)
 	// r.GET("/tenants/:id", baseController.TenantController.GetTenantDetail)
 	r.POST("/tenants", baseController.TenantController.CreateTenant)
 	r.PUT("/tenants/:id", baseController.TenantController.UpdateTenant)
 	r.DELETE("/tenants/:id", baseController.TenantController.DeleteTenant)
+	r.GET("/orders", baseController.OrderController.GetOrders)
+	r.GET("/orders/:id", baseController.OrderController.GetOrderDetail)
+	r.GET("/users/:user_id/orders", baseController.OrderController.GetUserOrders)
+	r.POST("/orders", baseController.OrderController.CreateOrder)
+	r.POST("/orders/:id/cancel", baseController.OrderController.CancelOrder)
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",

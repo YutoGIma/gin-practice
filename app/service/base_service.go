@@ -9,6 +9,7 @@ type BaseService struct {
 	TenantService    TenantService
 	InventoryService InventoryService
 	UserService      UserService
+	OrderService     OrderService
 }
 
 func NewBaseService(db *gorm.DB) BaseService {
@@ -17,5 +18,6 @@ func NewBaseService(db *gorm.DB) BaseService {
 		TenantService:    NewTenantService(db),
 		InventoryService: NewInventoryService(db),
 		UserService:      NewUserService(db),
+		OrderService:     NewOrderService(db),
 	}
 }

@@ -19,7 +19,7 @@ func main() {
 	defer logger.Sync()
 
 	db := infra.SetupDB()
-	db.AutoMigrate()
+	infra.DBMigration(db)
 
 	// Services
 	baseService := service.NewBaseService(db)

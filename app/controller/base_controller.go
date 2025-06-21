@@ -9,6 +9,7 @@ type BaseController struct {
 	InventoryController InventoryController
 	ProductController   ProductController
 	TenantController    TenantController
+	OrderController     OrderController
 }
 
 func NewBaseController(baseUseCase usecase.BaseUseCase) BaseController {
@@ -17,5 +18,6 @@ func NewBaseController(baseUseCase usecase.BaseUseCase) BaseController {
 		InventoryController: NewInventoryController(baseUseCase.InventoryUseCase),
 		ProductController:   NewProductController(baseUseCase.ProductUseCase),
 		TenantController:    NewTenantController(baseUseCase.TenantUseCase),
+		OrderController:     NewOrderController(baseUseCase.OrderUseCase),
 	}
 }

@@ -9,6 +9,7 @@ type BaseUseCase struct {
 	TenantUseCase    TenantUseCase
 	InventoryUseCase InventoryUseCase
 	UserUseCase      UserUseCase
+	OrderUseCase     OrderUseCase
 }
 
 func NewBaseUseCase(baseService service.BaseService) BaseUseCase {
@@ -17,5 +18,6 @@ func NewBaseUseCase(baseService service.BaseService) BaseUseCase {
 		TenantUseCase:    NewTenantUseCase(baseService.TenantService),
 		InventoryUseCase: NewInventoryUseCase(baseService.InventoryService),
 		UserUseCase:      NewUserUseCase(baseService.UserService),
+		OrderUseCase:     NewOrderUseCase(baseService.OrderService, baseService.InventoryService, baseService.ProductService),
 	}
 }
