@@ -4,6 +4,10 @@ import (
 	"myapp/app/controller"
 
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	
+	_ "myapp/docs" // swagger docs
 )
 
 func SetupRouter(baseController controller.BaseController) *gin.Engine {
@@ -37,5 +41,9 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 			"message": "pong",
 		})
 	})
+	
+	// Swagger documentation
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	
 	return r
 }

@@ -1,0 +1,646 @@
+basePath: /
+definitions:
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  model.Inventory:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      max_quantity:
+        type: integer
+      min_quantity:
+        type: integer
+      product:
+        $ref: '#/definitions/model.Product'
+      product_id:
+        type: integer
+      quantity:
+        minimum: 0
+        type: integer
+      tenant:
+        $ref: '#/definitions/model.Tenant'
+      tenant_id:
+        type: integer
+      updatedAt:
+        type: string
+    required:
+    - product_id
+    - quantity
+    - tenant_id
+    type: object
+  model.Order:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      orderItems:
+        items:
+          $ref: '#/definitions/model.OrderItem'
+        type: array
+      orderedAt:
+        type: string
+      status:
+        $ref: '#/definitions/model.OrderStatus'
+      tenant:
+        $ref: '#/definitions/model.Tenant'
+      tenantID:
+        type: integer
+      totalAmount:
+        type: number
+      updatedAt:
+        type: string
+      user:
+        $ref: '#/definitions/model.User'
+      userID:
+        type: integer
+    type: object
+  model.OrderItem:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      order:
+        $ref: '#/definitions/model.Order'
+      orderID:
+        type: integer
+      price:
+        type: number
+      product:
+        $ref: '#/definitions/model.Product'
+      productID:
+        type: integer
+      quantity:
+        type: integer
+      subtotal:
+        type: number
+      updatedAt:
+        type: string
+    type: object
+  model.OrderStatus:
+    enum:
+    - pending
+    - completed
+    - cancelled
+    type: string
+    x-enum-varnames:
+    - OrderStatusPending
+    - OrderStatusCompleted
+    - OrderStatusCancelled
+  model.Product:
+    properties:
+      barcode:
+        type: string
+      category_id:
+        type: integer
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      id:
+        type: integer
+      name:
+        type: string
+      purchase_price:
+        minimum: 0
+        type: number
+      updatedAt:
+        type: string
+    required:
+    - barcode
+    - category_id
+    - name
+    - purchase_price
+    type: object
+  model.Tenant:
+    properties:
+      address:
+        type: string
+      closed_at:
+        type: string
+      code:
+        type: string
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      name:
+        type: string
+      opened_at:
+        type: string
+      phone_number:
+        type: string
+      updatedAt:
+        type: string
+    required:
+    - address
+    - code
+    - email
+    - name
+    - phone_number
+    type: object
+  model.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+  request.CreateOrderRequest:
+    properties:
+      order_items:
+        items:
+          $ref: '#/definitions/request.OrderItemRequest'
+        minItems: 1
+        type: array
+      tenant_id:
+        type: integer
+      user_id:
+        type: integer
+    required:
+    - order_items
+    - tenant_id
+    - user_id
+    type: object
+  request.InventoryRestockRequest:
+    properties:
+      note:
+        type: string
+      product_id:
+        type: integer
+      quantity:
+        minimum: 1
+        type: integer
+      tenant_id:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    - tenant_id
+    type: object
+  request.OrderItemRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        minimum: 1
+        type: integer
+    required:
+    - product_id
+    - quantity
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: 商品在庫管理システムのRESTful API
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Gin Practice API
+  version: "1.0"
+paths:
+  /inventories:
+    get:
+      consumes:
+      - application/json
+      description: すべての在庫情報を取得します
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Inventory'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 在庫一覧取得
+      tags:
+      - inventories
+    post:
+      consumes:
+      - application/json
+      description: 新しい在庫レコードを作成します
+      parameters:
+      - description: 在庫情報
+        in: body
+        name: inventory
+        required: true
+        schema:
+          $ref: '#/definitions/model.Inventory'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Inventory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 在庫作成
+      tags:
+      - inventories
+  /inventories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 指定したIDの在庫を削除します
+      parameters:
+      - description: 在庫ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 在庫削除
+      tags:
+      - inventories
+  /inventories/restock:
+    post:
+      consumes:
+      - application/json
+      description: 指定した商品の在庫を追加します
+      parameters:
+      - description: 入荷情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.InventoryRestockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 商品入荷
+      tags:
+      - inventories
+  /orders:
+    get:
+      consumes:
+      - application/json
+      description: すべての注文情報を取得します
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Order'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 注文一覧取得
+      tags:
+      - orders
+    post:
+      consumes:
+      - application/json
+      description: 新しい注文を作成し、在庫を減らします
+      parameters:
+      - description: 注文情報
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/request.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 注文作成
+      tags:
+      - orders
+  /orders/{id}:
+    get:
+      consumes:
+      - application/json
+      description: 指定したIDの注文情報を取得します
+      parameters:
+      - description: 注文ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Order'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 注文詳細取得
+      tags:
+      - orders
+  /orders/{id}/cancel:
+    post:
+      consumes:
+      - application/json
+      description: 指定したIDの注文をキャンセルします
+      parameters:
+      - description: 注文ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 注文キャンセル
+      tags:
+      - orders
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: すべてのユーザー情報を取得します
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザー一覧取得
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: 新しいユーザーを作成します
+      parameters:
+      - description: ユーザー情報
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザー作成
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: 指定したIDのユーザーを削除します
+      parameters:
+      - description: ユーザーID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザー削除
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: 指定したIDのユーザー情報を取得します
+      parameters:
+      - description: ユーザーID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザー詳細取得
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: 指定したIDのユーザー情報を更新します
+      parameters:
+      - description: ユーザーID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: ユーザー情報
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: ユーザー更新
+      tags:
+      - users
+schemes:
+- http
+swagger: "2.0"

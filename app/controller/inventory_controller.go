@@ -20,6 +20,15 @@ func NewInventoryController(inventoryUseCase usecase.InventoryUseCase) Inventory
 	}
 }
 
+// GetInventories godoc
+// @Summary 在庫一覧取得
+// @Description すべての在庫情報を取得します
+// @Tags inventories
+// @Accept json
+// @Produce json
+// @Success 200 {array} model.Inventory
+// @Failure 500 {object} map[string]string
+// @Router /inventories [get]
 func (c InventoryController) GetInventories(ctx *gin.Context) {
 	inventories, err := c.inventoryUseCase.List()
 	if err != nil {
@@ -44,6 +53,17 @@ func (c InventoryController) GetInventories(ctx *gin.Context) {
 // 	ctx.JSON(http.StatusOK, inventory)
 // }
 
+// CreateInventory godoc
+// @Summary 在庫作成
+// @Description 新しい在庫レコードを作成します
+// @Tags inventories
+// @Accept json
+// @Produce json
+// @Param inventory body model.Inventory true "在庫情報"
+// @Success 201 {object} model.Inventory
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /inventories [post]
 func (c InventoryController) CreateInventory(ctx *gin.Context) {
 	var inventory model.Inventory
 	if err := ctx.ShouldBindJSON(&inventory); err != nil {
@@ -94,6 +114,17 @@ func (c InventoryController) UpdateInventoryOnPurchase(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Inventory updated successfully"})
 }
 
+// DeleteInventory godoc
+// @Summary 在庫削除
+// @Description 指定したIDの在庫を削除します
+// @Tags inventories
+// @Accept json
+// @Produce json
+// @Param id path int true "在庫ID"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /inventories/{id} [delete]
 func (c InventoryController) DeleteInventory(ctx *gin.Context) {
 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
 	if err != nil {
@@ -108,6 +139,17 @@ func (c InventoryController) DeleteInventory(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Inventory deleted successfully"})
 }
 
+// RestockInventory godoc
+// @Summary 商品入荷
+// @Description 指定した商品の在庫を追加します
+// @Tags inventories
+// @Accept json
+// @Produce json
+// @Param request body request.InventoryRestockRequest true "入荷情報"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /inventories/restock [post]
 func (c InventoryController) RestockInventory(ctx *gin.Context) {
 	var req request.InventoryRestockRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
