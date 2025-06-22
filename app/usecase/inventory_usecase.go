@@ -5,15 +5,18 @@ import (
 	"myapp/app/model"
 	"myapp/app/service"
 	"myapp/app/usecase/request"
+	"myapp/app/usecase/validation"
 )
 
 type InventoryUseCase struct {
 	inventoryService service.InventoryService
+	validator        validation.InventoryValidator
 }
 
 func NewInventoryUseCase(inventoryService service.InventoryService) InventoryUseCase {
 	return InventoryUseCase{
 		inventoryService: inventoryService,
+		validator:        validation.NewInventoryValidator(),
 	}
 }
 
@@ -57,8 +60,8 @@ func (uc *InventoryUseCase) Delete(id uint) error {
 
 func (uc *InventoryUseCase) UpdateOnPurchase(req request.InventoryPurchaseRequest) error {
 	// リクエストのバリデーション
-	if err := req.Validate(); err != nil {
-		return errors.NewValidationError(err.Error())
+	if err := uc.validator.ValidatePurchaseRequest(req); err != nil {
+		return err
 	}
 
 	// 1. 対象のInventoryを取得
@@ -82,6 +85,10 @@ func (uc *InventoryUseCase) UpdateOnPurchase(req request.InventoryPurchaseReques
 }
 
 func (uc *InventoryUseCase) RestockInventory(req request.InventoryRestockRequest) (*model.Inventory, error) {
+	// リクエストのバリデーション
+	if err := uc.validator.ValidateRestockRequest(req); err != nil {
+		return nil, err
+	}
 	// 1. 対象のInventoryを取得
 	inventory, err := uc.inventoryService.GetInventoryByProductAndTenant(req.ProductID, req.TenantID)
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"myapp/app/model"
 	"myapp/app/service"
 	"myapp/app/usecase/request"
+	"myapp/app/usecase/validation"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,6 +16,7 @@ type OrderUseCase struct {
 	orderService     service.OrderService
 	inventoryService service.InventoryService
 	productService   service.ProductService
+	validator        validation.OrderValidator
 }
 
 func NewOrderUseCase(orderService service.OrderService, inventoryService service.InventoryService, productService service.ProductService) OrderUseCase {
@@ -22,6 +24,7 @@ func NewOrderUseCase(orderService service.OrderService, inventoryService service
 		orderService:     orderService,
 		inventoryService: inventoryService,
 		productService:   productService,
+		validator:        validation.NewOrderValidator(),
 	}
 }
 
@@ -45,6 +48,11 @@ func (uc *OrderUseCase) GetOrdersByUserID(userID uint) ([]model.Order, error) {
 }
 
 func (uc *OrderUseCase) CreateOrder(req request.CreateOrderRequest) (*model.Order, error) {
+	// リクエストのバリデーション
+	if err := uc.validator.ValidateCreateOrderRequest(req); err != nil {
+		return nil, err
+	}
+
 	// トランザクション開始
 	tx := uc.orderService.BeginTransaction()
 	defer func() {
@@ -87,9 +95,9 @@ func (uc *OrderUseCase) CreateOrder(req request.CreateOrderRequest) (*model.Orde
 		}
 
 		// 在庫数の確認
-		if inventory.Quantity < item.Quantity {
+		if err := uc.validator.ValidateSufficientInventory(inventory.Quantity, item.Quantity, product.Name); err != nil {
 			tx.Rollback()
-			return nil, errors.NewValidationError(fmt.Sprintf("商品「%s」の在庫が不足しています。現在の在庫: %d", product.Name, inventory.Quantity))
+			return nil, err
 		}
 
 		// 在庫の更新
@@ -149,8 +157,9 @@ func (uc *OrderUseCase) CancelOrder(id uint) error {
 		return errors.NewInternalError("注文の取得に失敗しました", err)
 	}
 
-	if order.Status != model.OrderStatusPending {
-		return errors.NewValidationError("この注文はキャンセルできません")
+	// 注文キャンセルのバリデーション
+	if err := uc.validator.ValidateCancelOrder(order); err != nil {
+		return err
 	}
 
 	// TODO: 在庫の復元処理を実装
