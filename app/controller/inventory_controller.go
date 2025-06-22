@@ -107,3 +107,21 @@ func (c InventoryController) DeleteInventory(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "Inventory deleted successfully"})
 }
+
+func (c InventoryController) RestockInventory(ctx *gin.Context) {
+	var req request.InventoryRestockRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	inventory, err := c.inventoryUseCase.RestockInventory(req)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "在庫を入荷しました",
+		"inventory": inventory,
+	})
+}

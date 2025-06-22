@@ -20,6 +20,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 	r.GET("/inventories", baseController.InventoryController.GetInventories)
 	r.POST("/inventories", baseController.InventoryController.CreateInventory)
 	// r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
+	r.POST("/inventories/restock", baseController.InventoryController.RestockInventory)
 	r.DELETE("/inventories/:id", baseController.InventoryController.DeleteInventory)
 	r.GET("/tenants", baseController.TenantController.GetTenants)
 	// r.GET("/tenants/:id", baseController.TenantController.GetTenantDetail)

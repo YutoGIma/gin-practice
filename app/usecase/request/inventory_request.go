@@ -1,24 +1,23 @@
 package request
 
-import (
-	"errors"
-)
+import "errors"
 
 type InventoryPurchaseRequest struct {
-	ProductID uint `json:"product_id" validate:"required"`
-	TenantID  uint `json:"tenant_id" validate:"required"`
-	Quantity  int  `json:"quantity" validate:"required,gt=0"`
+	ProductID uint `json:"product_id" binding:"required"`
+	TenantID  uint `json:"tenant_id" binding:"required"`
+	Quantity  int  `json:"quantity" binding:"required"`
 }
 
-func (r *InventoryPurchaseRequest) Validate() error {
-	if r.ProductID == 0 {
-		return errors.New("product_id is required")
-	}
-	if r.TenantID == 0 {
-		return errors.New("tenant_id is required")
-	}
+func (r InventoryPurchaseRequest) Validate() error {
 	if r.Quantity <= 0 {
-		return errors.New("quantity must be greater than 0")
+		return errors.New("数量は1以上である必要があります")
 	}
 	return nil
+}
+
+type InventoryRestockRequest struct {
+	ProductID uint `json:"product_id" binding:"required"`
+	TenantID  uint `json:"tenant_id" binding:"required"`
+	Quantity  int  `json:"quantity" binding:"required,min=1"`
+	Note      string `json:"note"`
 }

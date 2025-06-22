@@ -80,3 +80,39 @@ func (uc *InventoryUseCase) UpdateOnPurchase(req request.InventoryPurchaseReques
 
 	return nil
 }
+
+func (uc *InventoryUseCase) RestockInventory(req request.InventoryRestockRequest) (*model.Inventory, error) {
+	// 1. 対象のInventoryを取得
+	inventory, err := uc.inventoryService.GetInventoryByProductAndTenant(req.ProductID, req.TenantID)
+	if err != nil {
+		// 在庫レコードが存在しない場合は新規作成
+		newInventory := model.Inventory{
+			ProductID: req.ProductID,
+			TenantID:  req.TenantID,
+			Quantity:  req.Quantity,
+		}
+		if err := uc.inventoryService.CreateInventory(newInventory); err != nil {
+			return nil, errors.NewInternalError("在庫の作成に失敗しました", err)
+		}
+		// 作成した在庫を再取得（関連データを含む）
+		createdInventory, err := uc.inventoryService.GetInventoryByProductAndTenant(req.ProductID, req.TenantID)
+		if err != nil {
+			return nil, errors.NewInternalError("作成した在庫の取得に失敗しました", err)
+		}
+		return createdInventory, nil
+	}
+
+	// 2. 在庫数を増加
+	inventory.Quantity += req.Quantity
+	if err := uc.inventoryService.SaveInventory(inventory); err != nil {
+		return nil, errors.NewInternalError("在庫の更新に失敗しました", err)
+	}
+
+	// 3. 更新した在庫を再取得（関連データを含む）
+	updatedInventory, err := uc.inventoryService.GetInventoryDetail(inventory.ID)
+	if err != nil {
+		return nil, errors.NewInternalError("更新した在庫の取得に失敗しました", err)
+	}
+
+	return updatedInventory, nil
+}
