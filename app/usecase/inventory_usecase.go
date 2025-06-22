@@ -43,12 +43,35 @@ func (uc *InventoryUseCase) Create(input model.Inventory) (*model.Inventory, err
 	return &input, nil
 }
 
-func (uc *InventoryUseCase) Update(id uint, input model.Inventory) (*model.Inventory, error) {
-	input.ID = id
-	if err := uc.inventoryService.UpdateInventory(input); err != nil {
-		return nil, errors.NewInternalError("Failed to update inventory", err)
+func (uc *InventoryUseCase) Update(id uint, req request.InventoryUpdateRequest) (*model.Inventory, error) {
+	// リクエストのバリデーション
+	if err := uc.validator.ValidateUpdateRequest(req); err != nil {
+		return nil, err
 	}
-	return &input, nil
+
+	// 既存の在庫を取得
+	existingInventory, err := uc.inventoryService.GetInventoryDetail(id)
+	if err != nil {
+		return nil, errors.NewNotFoundError("在庫が見つかりません")
+	}
+
+	// 在庫情報を更新
+	existingInventory.ProductID = req.ProductID
+	existingInventory.TenantID = req.TenantID
+	existingInventory.Quantity = req.Quantity
+
+	// 在庫を保存
+	if err := uc.inventoryService.SaveInventory(existingInventory); err != nil {
+		return nil, errors.NewInternalError("在庫の更新に失敗しました", err)
+	}
+
+	// 更新された在庫を再取得（関連データを含む）
+	updatedInventory, err := uc.inventoryService.GetInventoryDetail(id)
+	if err != nil {
+		return nil, errors.NewInternalError("更新した在庫の取得に失敗しました", err)
+	}
+
+	return updatedInventory, nil
 }
 
 func (uc *InventoryUseCase) Delete(id uint) error {

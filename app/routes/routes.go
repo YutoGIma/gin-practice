@@ -23,7 +23,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 	r.DELETE("/products/:id", baseController.ProductController.DeleteProduct)
 	r.GET("/inventories", baseController.InventoryController.GetInventories)
 	r.POST("/inventories", baseController.InventoryController.CreateInventory)
-	// r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
+	r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
 	r.POST("/inventories/restock", baseController.InventoryController.RestockInventory)
 	r.DELETE("/inventories/:id", baseController.InventoryController.DeleteInventory)
 	r.GET("/tenants", baseController.TenantController.GetTenants)

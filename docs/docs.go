@@ -164,6 +164,72 @@ const docTemplate = `{
             }
         },
         "/inventories/{id}": {
+            "put": {
+                "description": "指定したIDの在庫情報を更新します",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "inventories"
+                ],
+                "summary": "在庫更新",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "在庫ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "在庫更新情報",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.InventoryUpdateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.Inventory"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            },
             "delete": {
                 "description": "指定したIDの在庫を削除します",
                 "consumes": [
@@ -944,6 +1010,26 @@ const docTemplate = `{
                 "quantity": {
                     "type": "integer",
                     "minimum": 1
+                },
+                "tenant_id": {
+                    "type": "integer"
+                }
+            }
+        },
+        "request.InventoryUpdateRequest": {
+            "type": "object",
+            "required": [
+                "product_id",
+                "quantity",
+                "tenant_id"
+            ],
+            "properties": {
+                "product_id": {
+                    "type": "integer"
+                },
+                "quantity": {
+                    "type": "integer",
+                    "minimum": 0
                 },
                 "tenant_id": {
                     "type": "integer"

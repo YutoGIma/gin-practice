@@ -79,26 +79,39 @@ func (c InventoryController) CreateInventory(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, createdInventory)
 }
 
-// func (c InventoryController) UpdateInventory(ctx *gin.Context) {
-// 	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
-// 	if err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
-// 		return
-// 	}
+// UpdateInventory godoc
+// @Summary 在庫更新
+// @Description 指定したIDの在庫情報を更新します
+// @Tags inventories
+// @Accept json
+// @Produce json
+// @Param id path int true "在庫ID"
+// @Param request body request.InventoryUpdateRequest true "在庫更新情報"
+// @Success 200 {object} model.Inventory
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /inventories/{id} [put]
+func (c InventoryController) UpdateInventory(ctx *gin.Context) {
+	id, err := strconv.ParseUint(ctx.Param("id"), 10, 32)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "無効なIDです"})
+		return
+	}
 
-// 	var inventory model.Inventory
-// 	if err := ctx.ShouldBindJSON(&inventory); err != nil {
-// 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
+	var req request.InventoryUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
-// 	inventory.ID = uint(id)
-// 	if err := c.inventoryUseCase.Update(inventory); err != nil {
-// 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	ctx.JSON(http.StatusOK, inventory)
-// }
+	inventory, err := c.inventoryUseCase.Update(uint(id), req)
+	if err != nil {
+		ctx.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, inventory)
+}
 
 func (c InventoryController) UpdateInventoryOnPurchase(ctx *gin.Context) {
 	var req request.InventoryPurchaseRequest

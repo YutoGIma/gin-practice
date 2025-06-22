@@ -209,6 +209,20 @@ definitions:
     - quantity
     - tenant_id
     type: object
+  request.InventoryUpdateRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        minimum: 0
+        type: integer
+      tenant_id:
+        type: integer
+    required:
+    - product_id
+    - quantity
+    - tenant_id
+    type: object
   request.OrderItemRequest:
     properties:
       product_id:
@@ -323,6 +337,50 @@ paths:
               type: string
             type: object
       summary: 在庫削除
+      tags:
+      - inventories
+    put:
+      consumes:
+      - application/json
+      description: 指定したIDの在庫情報を更新します
+      parameters:
+      - description: 在庫ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: 在庫更新情報
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/request.InventoryUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Inventory'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: 在庫更新
       tags:
       - inventories
   /inventories/restock:

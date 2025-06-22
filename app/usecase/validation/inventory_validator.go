@@ -52,6 +52,23 @@ func (v InventoryValidator) ValidateRestockRequest(req request.InventoryRestockR
 	return nil
 }
 
+// ValidateUpdateRequest validates inventory update request
+func (v InventoryValidator) ValidateUpdateRequest(req request.InventoryUpdateRequest) error {
+	if err := v.ValidateID(req.ProductID, "商品ID"); err != nil {
+		return err
+	}
+	
+	if err := v.ValidateID(req.TenantID, "テナントID"); err != nil {
+		return err
+	}
+	
+	if err := v.ValidateNonNegativeNumber(req.Quantity, "在庫数量"); err != nil {
+		return err
+	}
+	
+	return nil
+}
+
 // ValidateSufficientInventory validates that inventory has sufficient quantity
 func (v InventoryValidator) ValidateSufficientInventory(currentQuantity, requestedQuantity int, productName string) error {
 	if currentQuantity < requestedQuantity {
