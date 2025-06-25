@@ -12,35 +12,62 @@ import (
 
 func SetupRouter(baseController controller.BaseController) *gin.Engine {
 	r := gin.Default()
-	r.GET("/users", baseController.UserController.GetUsers)
-	r.GET("/users/:id", baseController.UserController.GetUserDetail)
-	r.POST("/users", baseController.UserController.CreateUser)
-	r.PUT("/users/:id", baseController.UserController.UpdateUser)
-	r.DELETE("/users/:id", baseController.UserController.DeleteUser)
-	r.GET("/products", baseController.ProductController.GetProducts)
-	r.POST("/products", baseController.ProductController.CreateProduct)
-	r.PUT("/products/:id", baseController.ProductController.UpdateProduct)
-	r.DELETE("/products/:id", baseController.ProductController.DeleteProduct)
-	r.GET("/inventories", baseController.InventoryController.GetInventories)
-	r.POST("/inventories", baseController.InventoryController.CreateInventory)
-	r.PUT("/inventories/:id", baseController.InventoryController.UpdateInventory)
-	r.POST("/inventories/restock", baseController.InventoryController.RestockInventory)
-	r.DELETE("/inventories/:id", baseController.InventoryController.DeleteInventory)
-	r.GET("/tenants", baseController.TenantController.GetTenants)
-	r.GET("/tenants/:id", baseController.TenantController.GetTenantDetail)
-	r.POST("/tenants", baseController.TenantController.CreateTenant)
-	r.PUT("/tenants/:id", baseController.TenantController.UpdateTenant)
-	r.DELETE("/tenants/:id", baseController.TenantController.DeleteTenant)
-	r.GET("/orders", baseController.OrderController.GetOrders)
-	r.GET("/orders/:id", baseController.OrderController.GetOrderDetail)
-	r.GET("/users/:user_id/orders", baseController.OrderController.GetUserOrders)
-	r.POST("/orders", baseController.OrderController.CreateOrder)
-	r.POST("/orders/:id/cancel", baseController.OrderController.CancelOrder)
+	
+	// Health check
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
+	
+	// User endpoints
+	userGroup := r.Group("/users")
+	{
+		userGroup.GET("", baseController.UserController.GetUsers)
+		userGroup.GET("/:id", baseController.UserController.GetUserDetail)
+		userGroup.POST("", baseController.UserController.CreateUser)
+		userGroup.PUT("/:id", baseController.UserController.UpdateUser)
+		userGroup.DELETE("/:id", baseController.UserController.DeleteUser)
+		userGroup.GET("/:user_id/orders", baseController.OrderController.GetUserOrders)
+	}
+	
+	// Product endpoints
+	productGroup := r.Group("/products")
+	{
+		productGroup.GET("", baseController.ProductController.GetProducts)
+		productGroup.POST("", baseController.ProductController.CreateProduct)
+		productGroup.PUT("/:id", baseController.ProductController.UpdateProduct)
+		productGroup.DELETE("/:id", baseController.ProductController.DeleteProduct)
+	}
+	
+	// Inventory endpoints
+	inventoryGroup := r.Group("/inventories")
+	{
+		inventoryGroup.GET("", baseController.InventoryController.GetInventories)
+		inventoryGroup.POST("", baseController.InventoryController.CreateInventory)
+		inventoryGroup.PUT("/:id", baseController.InventoryController.UpdateInventory)
+		inventoryGroup.DELETE("/:id", baseController.InventoryController.DeleteInventory)
+		inventoryGroup.POST("/restock", baseController.InventoryController.RestockInventory)
+	}
+	
+	// Tenant endpoints
+	tenantGroup := r.Group("/tenants")
+	{
+		tenantGroup.GET("", baseController.TenantController.GetTenants)
+		tenantGroup.GET("/:id", baseController.TenantController.GetTenantDetail)
+		tenantGroup.POST("", baseController.TenantController.CreateTenant)
+		tenantGroup.PUT("/:id", baseController.TenantController.UpdateTenant)
+		tenantGroup.DELETE("/:id", baseController.TenantController.DeleteTenant)
+	}
+	
+	// Order endpoints
+	orderGroup := r.Group("/orders")
+	{
+		orderGroup.GET("", baseController.OrderController.GetOrders)
+		orderGroup.GET("/:id", baseController.OrderController.GetOrderDetail)
+		orderGroup.POST("", baseController.OrderController.CreateOrder)
+		orderGroup.POST("/:id/cancel", baseController.OrderController.CancelOrder)
+	}
 	
 	// Swagger documentation
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
