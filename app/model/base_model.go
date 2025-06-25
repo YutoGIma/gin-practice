@@ -23,6 +23,7 @@ func GetModels() []interface{} {
 		Tenant{},
 		Order{},
 		OrderItem{},
+		PriceSetting{},
 		// 他のモデルを追加する場合は、ここに追加します
 	}
 }

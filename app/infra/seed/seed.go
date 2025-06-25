@@ -12,6 +12,7 @@ func SeedData(db *gorm.DB) error {
 		SeedUsers,
 		SeedProducts,
 		SeedInventories,
+		SeedPriceSettings, // 在庫作成後に価格設定を作成
 	}
 
 	// 各シーダーを順番に実行

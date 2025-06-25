@@ -23,9 +23,19 @@ func SeedInventories(db *gorm.DB) error {
 	}
 
 	for _, inventory := range inventories {
-		if err := db.Create(&inventory).Error; err != nil {
-			return err
+		// 既存の在庫をProductIDでチェック
+		var existingInventory model.Inventory
+		if err := db.Where("product_id = ?", inventory.ProductID).First(&existingInventory).Error; err != nil {
+			if err == gorm.ErrRecordNotFound {
+				// 存在しない場合は作成
+				if err := db.Create(&inventory).Error; err != nil {
+					return err
+				}
+			} else {
+				return err
+			}
 		}
+		// 既に存在する場合はスキップ
 	}
 
 	return nil

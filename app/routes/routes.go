@@ -48,6 +48,13 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		inventoryGroup.PUT("/:id", baseController.InventoryController.UpdateInventory)
 		inventoryGroup.DELETE("/:id", baseController.InventoryController.DeleteInventory)
 		inventoryGroup.POST("/restock", baseController.InventoryController.RestockInventory)
+		
+		// Price setting endpoints
+		inventoryGroup.POST("/:id/prices", baseController.PriceSettingController.CreatePriceSetting)
+		inventoryGroup.GET("/:id/prices", baseController.PriceSettingController.GetPriceSettingsByInventoryID)
+		inventoryGroup.GET("/:id/prices/current", baseController.PriceSettingController.GetCurrentPriceSetting)
+		inventoryGroup.PUT("/:id/prices/:price_id", baseController.PriceSettingController.UpdatePriceSetting)
+		inventoryGroup.DELETE("/:id/prices/:price_id", baseController.PriceSettingController.DeletePriceSetting)
 	}
 	
 	// Tenant endpoints
