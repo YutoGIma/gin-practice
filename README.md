@@ -5,10 +5,12 @@ Go言語のGinフレームワークを使用したRESTful APIサーバーの実�
 ## 機能
 
 - **マルチテナント対応**: 複数の店舗/拠点での在庫管理
-- **商品管理**: 商品の登録・更新・削除
-- **在庫管理**: 在庫数の管理と購入処理
+- **商品管理**: 商品の登録・更新・削除（バーコード対応）
+- **在庫管理**: 在庫数の管理と入荷処理
+- **価格設定**: 店舗別価格とセール機能（期間限定価格）
+- **注文管理**: 商品購入と注文履歴管理
 - **ユーザー管理**: ユーザーの登録・更新・削除
-- **ソフトデリート**: 全てのエンティティで論理削除をサポート
+- **APIドキュメント**: Swagger UI による対話的なAPI仕様書
 
 ## 技術スタック
 
@@ -17,17 +19,60 @@ Go言語のGinフレームワークを使用したRESTful APIサーバーの実�
 - **ORM**: GORM
 - **データベース**: PostgreSQL 13
 - **コンテナ**: Docker & Docker Compose
-- **ロガー**: Zap
+- **APIドキュメント**: Swagger/OpenAPI
+- **開発ツール**: Makefile, golangci-lint
+
+## クイックスタート
+
+### 前提条件
+
+- Docker Desktop がインストールされていること
+- Make コマンドが使用できること（macOS/Linuxは標準搭載）
+
+### セットアップ
+
+```bash
+# リポジトリのクローン
+git clone https://github.com/yourusername/gin-practice.git
+cd gin-practice
+
+# 初回起動（DBリセット + アプリケーション起動）
+make reset
+
+# 開発モード（ログ表示付き）で起動
+make dev
+```
+
+アプリケーションは以下のURLでアクセスできます：
+- API: http://localhost:8080
+- Swagger UI: http://localhost:8080/swagger/index.html
+
+## 主要なMakeコマンド
+
+```bash
+make help         # 利用可能なコマンド一覧を表示
+make dev          # 開発モードで起動（ログ表示）
+make test-v       # テストを詳細モードで実行
+make swagger      # Swaggerドキュメントを生成
+make db-shell     # PostgreSQLシェルに接続
+make clean        # コンテナとデータを削除
+```
+
+詳細は `make help` を実行してください。
 
 ## アーキテクチャ
 
-クリーンアーキテクチャに基づいた4層構造を採用しています：
+クリーンアーキテクチャに基づいた6層構造を採用しています：
 
 ```
 ┌─────────────────┐
+│     Router      │  URLルーティング、ミドルウェア
+├─────────────────┤
 │   Controller    │  HTTPリクエスト/レスポンス処理
 ├─────────────────┤
 │    UseCase      │  ビジネスロジック
+├─────────────────┤
+│   Validation    │  入力検証ロジック
 ├─────────────────┤
 │    Service      │  データアクセス層
 ├─────────────────┤
@@ -49,198 +94,196 @@ gin-practice/
 │   ├── migrate/         # マイグレーション
 │   ├── model/           # ドメインモデル
 │   ├── routes/          # ルーティング定義
-│   ├── service/         # データアクセス層
-│   └── usecase/         # ビジネスロジック層
-├── main.go              # エントリーポイント
-├── Dockerfile           # Dockerイメージ定義
+│   ├── service/         # サービス層（データアクセス）
+│   └── usecase/         # ユースケース層（ビジネスロジック）
+│       ├── request/     # リクエストDTO
+│       └── validation/  # バリデーションロジック
+├── docs/                # Swaggerドキュメント
 ├── docker-compose.yml   # Docker Compose設定
-├── go.mod               # Goモジュール定義
-└── go.sum               # 依存関係チェックサム
-```
-
-## セットアップ
-
-### 前提条件
-
-- Docker
-- Docker Compose
-- Go 1.22以降（ローカル開発の場合）
-
-### インストール
-
-1. リポジトリのクローン
-
-```bash
-git clone <repository-url>
-cd gin-practice
-```
-
-2. Docker Composeで起動
-
-```bash
-# ビルドして起動
-docker-compose up --build
-
-# バックグラウンドで起動
-docker-compose up -d
-```
-
-3. アプリケーションの確認
-
-```bash
-# ヘルスチェック
-curl http://localhost:8080/ping
-```
-
-## 開発
-
-### ローカルでの実行
-
-```bash
-# 依存関係のインストール
-go mod download
-
-# アプリケーションの実行
-go run main.go
-```
-
-### 環境変数
-
-| 変数名 | デフォルト値 | 説明 |
-|--------|------------|------|
-| DB_HOST | db | データベースホスト |
-| DB_PORT | 5432 | データベースポート |
-| DB_USER | user | データベースユーザー |
-| DB_PASSWORD | password | データベースパスワード |
-| DB_NAME | myapp | データベース名 |
-| SERVER_PORT | 8080 | サーバーポート |
-| ENV | development | 実行環境 |
-
-### データベースマイグレーション
-
-```bash
-# Docker経由でマイグレーション実行
-docker-compose run migrate
-
-# 直接実行
-go run app/migrate/migrate.go
+├── Dockerfile          # Dockerイメージ定義
+├── Makefile            # 開発用コマンド定義
+├── go.mod              # Goモジュール定義
+└── main.go             # エントリーポイント
 ```
 
 ## API エンドポイント
 
 ### ユーザー管理
-
 - `GET /users` - ユーザー一覧取得
 - `GET /users/:id` - ユーザー詳細取得
 - `POST /users` - ユーザー作成
 - `PUT /users/:id` - ユーザー更新
 - `DELETE /users/:id` - ユーザー削除
+- `GET /users/:id/orders` - ユーザーの注文履歴取得
 
 ### 商品管理
-
 - `GET /products` - 商品一覧取得
 - `POST /products` - 商品作成
 - `PUT /products/:id` - 商品更新
 - `DELETE /products/:id` - 商品削除
 
 ### 在庫管理
-
 - `GET /inventories` - 在庫一覧取得
 - `POST /inventories` - 在庫作成
-- `POST /inventories/purchase` - 商品購入（在庫減少）
+- `PUT /inventories/:id` - 在庫更新
 - `DELETE /inventories/:id` - 在庫削除
+- `POST /inventories/restock` - 在庫入荷
 
-### テナント管理
+### 価格設定
+- `POST /inventories/:id/prices` - 価格設定作成
+- `GET /inventories/:id/prices` - 価格履歴取得
+- `GET /inventories/:id/prices/current` - 現在価格取得
+- `PUT /inventories/:id/prices/:price_id` - 価格設定更新
+- `DELETE /inventories/:id/prices/:price_id` - 価格設定削除
 
-- `GET /tenants` - テナント一覧取得
-- `POST /tenants` - テナント作成
-- `PUT /tenants/:id` - テナント更新
-- `DELETE /tenants/:id` - テナント削除
+### 店舗管理
+- `GET /tenants` - 店舗一覧取得
+- `GET /tenants/:id` - 店舗詳細取得
+- `POST /tenants` - 店舗作成
+- `PUT /tenants/:id` - 店舗更新
+- `DELETE /tenants/:id` - 店舗削除
 
-### ヘルスチェック
+### 注文管理
+- `GET /orders` - 注文一覧取得
+- `GET /orders/:id` - 注文詳細取得
+- `POST /orders` - 注文作成
+- `POST /orders/:id/cancel` - 注文キャンセル
 
-- `GET /ping` - サーバー状態確認
+詳細なAPI仕様は Swagger UI (http://localhost:8080/swagger/index.html) で確認できます。
 
-## API使用例
+## 開発
 
-### ユーザー作成
+### 新機能の追加手順
 
-```bash
-curl -X POST http://localhost:8080/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "山田太郎",
-    "email": "yamada@example.com"
-  }'
-```
+1. モデルを作成 (`app/model/`)
+2. `base_model.go` の `GetModels()` に追加
+3. サービスを作成 (`app/service/`)
+4. ユースケースを作成 (`app/usecase/`)
+5. バリデーションを作成 (`app/usecase/validation/`)
+6. コントローラーを作成 (`app/controller/`)
+7. ルーティングを追加 (`app/routes/routes.go`)
+8. Base構造体を更新
+9. Swaggerドキュメントを生成 (`make swagger`)
 
-### 商品作成
-
-```bash
-curl -X POST http://localhost:8080/products \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "ノートPC",
-    "price": 98000
-  }'
-```
-
-### 在庫登録
-
-```bash
-curl -X POST http://localhost:8080/inventories \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_id": 1,
-    "tenant_id": 1,
-    "quantity": 50
-  }'
-```
-
-### 商品購入
+### テスト
 
 ```bash
-curl -X POST http://localhost:8080/inventories/purchase \
-  -H "Content-Type: application/json" \
-  -d '{
-    "product_id": 1,
-    "tenant_id": 1,
-    "quantity": 3
-  }'
+# 全テストを実行
+make test
+
+# 詳細モードで実行
+make test-v
+
+# 特定のパッケージのみ
+docker-compose run --rm app go test ./app/usecase/... -v
 ```
 
-## Docker コマンド
+### コード品質
 
 ```bash
-# コンテナの状態確認
-docker-compose ps
+# Lintチェック
+make lint
 
-# ログの確認
-docker-compose logs -f app
+# コードフォーマット
+make fmt
 
-# データベースログの確認
-docker-compose logs -f db
-
-# コンテナの停止
-docker-compose down
-
-# ボリュームも含めて削除
-docker-compose down -v
-
-# コンテナへのアクセス
-docker-compose exec app /bin/sh
+# go vetチェック
+make vet
 ```
+
+## データベース
+
+### スキーマ
+
+主要なテーブル：
+- `users` - ユーザー情報
+- `products` - 商品マスタ（バーコード管理）
+- `tenants` - 店舗マスタ
+- `inventories` - 在庫情報（商品×店舗）
+- `price_settings` - 価格設定（期間・セール対応）
+- `orders` - 注文情報
+- `order_items` - 注文明細
+
+すべてのテーブルで論理削除（soft delete）をサポートしています。
+
+### マイグレーション
+
+```bash
+# マイグレーション実行
+make migrate
+
+# DBシェルに接続
+make db-shell
+
+# テーブル確認
+\dt
+```
+
+### シードデータ
+
+アプリケーション起動時に自動的にシードデータが投入されます。
+シードデータはupsert方式で、重複を防ぎます。
 
 ## トラブルシューティング
 
-### ポート競合エラー
+### ポートが使用中の場合
 
-ポート8080または5432が既に使用されている場合は、`docker-compose.yml`のポート設定を変更してください。
+```bash
+# 8080番ポートの使用状況確認
+lsof -i :8080
 
-### データベース接続エラー
+# docker-compose.yml でポートを変更
+```
 
-環境変数が正しく設定されているか確認してください。Docker Compose使用時は`DB_HOST=db`である必要があります。
+### DBのリセット
 
-### マイグレーションエラー
+```bash
+# 完全リセット
+make reset
 
-データベースが起動していることを確認してから、マイグレーションを実行してください。
+# より強力なクリーンアップ
+make clean-all
+make reset
+```
+
+### ログの確認
+
+```bash
+# すべてのログ
+make logs
+
+# アプリケーションのログのみ
+make logs-app
+```
+
+## 環境変数
+
+```bash
+# データベース設定（docker-compose.yml内）
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=myapp
+
+# Ginフレームワーク設定
+GIN_MODE=debug  # 本番環境では "release" に設定
+```
+
+## ライセンス
+
+MIT License
+
+## 貢献
+
+プルリクエストを歓迎します。大きな変更の場合は、まずissueを作成して変更内容を議論してください。
+
+1. プロジェクトをフォーク
+2. フィーチャーブランチを作成 (`git checkout -b feature/amazing-feature`)
+3. 変更をコミット (`git commit -m 'Add some amazing feature'`)
+4. ブランチにプッシュ (`git push origin feature/amazing-feature`)
+5. プルリクエストを作成
+
+## 作者
+
+Your Name - [@yourtwitter](https://twitter.com/yourtwitter)
+
+Project Link: [https://github.com/yourusername/gin-practice](https://github.com/yourusername/gin-practice)

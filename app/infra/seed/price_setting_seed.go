@@ -52,19 +52,16 @@ func SeedPriceSettings(db *gorm.DB) error {
 	}
 
 	for _, priceSetting := range priceSettings {
-		// 既存の価格設定をチェック
-		var existingPriceSetting model.PriceSetting
-		if err := db.Where("inventory_id = ?", priceSetting.InventoryID).First(&existingPriceSetting).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				// 存在しない場合は作成
-				if err := db.Create(&priceSetting).Error; err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+		// Upsert: InventoryIDをキーとして存在する場合は更新、存在しない場合は作成
+		// 既存の価格設定を非アクティブにする
+		db.Model(&model.PriceSetting{}).
+			Where("inventory_id = ?", priceSetting.InventoryID).
+			Update("is_active", false)
+		
+		// 新しい価格設定を作成
+		if err := db.Create(&priceSetting).Error; err != nil {
+			return err
 		}
-		// 既に存在する場合はスキップ
 	}
 
 	return nil

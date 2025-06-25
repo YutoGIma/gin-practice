@@ -38,19 +38,12 @@ func SeedTenants(db *gorm.DB) error {
 	}
 
 	for _, tenant := range tenants {
-		// 既存のテナントをコードでチェック
-		var existingTenant model.Tenant
-		if err := db.Where("code = ?", tenant.Code).First(&existingTenant).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				// 存在しない場合は作成
-				if err := db.Create(&tenant).Error; err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+		// Upsert: コードをキーとして存在する場合は更新、存在しない場合は作成
+		if err := db.Where("code = ?", tenant.Code).
+			Assign(tenant).
+			FirstOrCreate(&tenant).Error; err != nil {
+			return err
 		}
-		// 既に存在する場合はスキップ
 	}
 
 	return nil

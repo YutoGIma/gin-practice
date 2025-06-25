@@ -10,32 +10,28 @@ func SeedInventories(db *gorm.DB) error {
 	inventories := []model.Inventory{
 		{
 			ProductID: 1,
+			TenantID:  1, // 本社
 			Quantity:  100,
 		},
 		{
 			ProductID: 2,
+			TenantID:  1, // 本社
 			Quantity:  50,
 		},
 		{
 			ProductID: 3,
+			TenantID:  2, // 大阪支店
 			Quantity:  75,
 		},
 	}
 
 	for _, inventory := range inventories {
-		// 既存の在庫をProductIDでチェック
-		var existingInventory model.Inventory
-		if err := db.Where("product_id = ?", inventory.ProductID).First(&existingInventory).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				// 存在しない場合は作成
-				if err := db.Create(&inventory).Error; err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+		// Upsert: ProductIDとTenantIDの組み合わせをキーとして存在する場合は更新、存在しない場合は作成
+		if err := db.Where("product_id = ? AND tenant_id = ?", inventory.ProductID, inventory.TenantID).
+			Assign(inventory).
+			FirstOrCreate(&inventory).Error; err != nil {
+			return err
 		}
-		// 既に存在する場合はスキップ
 	}
 
 	return nil

@@ -29,19 +29,12 @@ func SeedProducts(db *gorm.DB) error {
 	}
 
 	for _, product := range products {
-		// 既存の商品をバーコードでチェック
-		var existingProduct model.Product
-		if err := db.Where("barcode = ?", product.Barcode).First(&existingProduct).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				// 存在しない場合は作成
-				if err := db.Create(&product).Error; err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+		// Upsert: バーコードをキーとして存在する場合は更新、存在しない場合は作成
+		if err := db.Where("barcode = ?", product.Barcode).
+			Assign(product).
+			FirstOrCreate(&product).Error; err != nil {
+			return err
 		}
-		// 既に存在する場合はスキップ
 	}
 
 	return nil

@@ -62,8 +62,19 @@ func (c *OrderController) GetOrderDetail(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, order)
 }
 
+// GetUserOrders godoc
+// @Summary ユーザーの注文一覧取得
+// @Description 指定したユーザーの注文一覧を取得します
+// @Tags orders
+// @Accept json
+// @Produce json
+// @Param id path int true "ユーザーID"
+// @Success 200 {array} model.Order
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{id}/orders [get]
 func (c *OrderController) GetUserOrders(ctx *gin.Context) {
-	idStr := ctx.Param("user_id")
+	idStr := ctx.Param("id")
 	userID, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "無効なユーザーIDです"})

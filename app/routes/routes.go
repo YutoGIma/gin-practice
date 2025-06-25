@@ -28,7 +28,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		userGroup.POST("", baseController.UserController.CreateUser)
 		userGroup.PUT("/:id", baseController.UserController.UpdateUser)
 		userGroup.DELETE("/:id", baseController.UserController.DeleteUser)
-		userGroup.GET("/:user_id/orders", baseController.OrderController.GetUserOrders)
+		userGroup.GET("/:id/orders", baseController.OrderController.GetUserOrders)
 	}
 	
 	// Product endpoints

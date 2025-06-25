@@ -2,168 +2,267 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Start
+
+```bash
+# First time setup
+make reset        # Clean database and start fresh
+
+# Daily development
+make dev          # Start with logs
+make test-v       # Run tests with details
+make swagger      # Generate API docs
+```
+
 ## Common Development Commands
 
-### Running the Application
+### Using Makefile (Recommended)
+
 ```bash
-# Start the application with database using Docker Compose
-docker-compose up
+# Show all available commands
+make help
 
-# Build and start fresh
-docker-compose up --build
+# Container Management
+make build        # Build Docker images
+make up           # Start containers in background
+make down         # Stop and remove containers
+make start        # Start existing containers
+make stop         # Stop containers (no removal)
+make restart      # Restart containers
+make status       # Show detailed status
 
-# Run in detached mode
-docker-compose up -d
+# Development
+make dev          # Development mode (build + logs)
+make run          # Run in foreground
+make logs         # View all logs
+make logs-app     # View application logs only
 
-# Stop all services
-docker-compose down
+# Database
+make reset        # Full reset (clean + up + migrate)
+make migrate      # Run database migrations
+make seed         # Load seed data (currently automatic)
+make db-shell     # Connect to PostgreSQL
 
-# Clean stop with volume removal
-docker-compose down -v
+# Testing & Quality
+make test         # Run tests
+make test-v       # Run tests with verbose output
+make lint         # Run golangci-lint
+make fmt          # Format code
+make vet          # Run go vet
+make tidy         # Clean up go.mod
+
+# API Documentation
+make swagger      # Generate Swagger docs
+make swagger-fmt  # Format Swagger comments
+
+# Cleanup
+make clean        # Remove containers and volumes
+make clean-all    # Remove all Docker resources
+make prune        # Remove unused Docker resources
+
+# Debug
+make shell        # Enter app container shell
+make status       # Show container and volume status
 ```
 
-### Direct Go Commands
-```bash
-# Run the application directly (requires local PostgreSQL)
-go run main.go
+### Key Makefile Commands
 
-# Build the binary
-go build -o gin-practice main.go
-
-# Download dependencies
-go mod download
-
-# Clean up dependencies
-go mod tidy
-```
-
-### Database Operations
-```bash
-# Run migrations via Docker
-docker-compose run migrate
-
-# Run migrations directly
-go run app/migrate/migrate.go
-```
-
-### Viewing Logs
-```bash
-# Application logs
-docker-compose logs -f app
-
-# Database logs
-docker-compose logs -f db
-```
+| Command | Description | When to Use |
+|---------|-------------|-------------|
+| `make reset` | Full database reset | Starting fresh or fixing DB issues |
+| `make dev` | Development mode | Active development with live logs |
+| `make test-v` | Verbose tests | Debugging test failures |
+| `make swagger` | Generate API docs | After adding/updating endpoints |
+| `make clean` | Cleanup | Before switching branches or projects |
 
 ## Architecture Overview
 
 This application follows a **Clean Architecture** pattern with unidirectional dependency flow:
 
 ```
-HTTP Request → Router → Controller → UseCase → Service → Database
-                ↑                                          ↓
-                └────────── HTTP Response ←────────────────┘
+HTTP Request → Router → Controller → UseCase → Service → Model → Database
+                ↑                                                      ↓
+                └────────────── HTTP Response ←────────────────────────┘
 ```
 
 ### Layer Responsibilities
 
-1. **Controller Layer** (`app/controller/`)
-   - Handles HTTP requests/responses
+1. **Router Layer** (`app/routes/`)
+   - URL routing and middleware setup
+   - Endpoint grouping and versioning
+   - Swagger endpoint registration
+
+2. **Controller Layer** (`app/controller/`)
+   - HTTP request/response handling
    - Request validation and binding
    - Error response formatting
-   - No business logic
+   - Swagger documentation
 
-2. **UseCase Layer** (`app/usecase/`)
-   - Contains business logic and validation
-   - Orchestrates service calls
-   - Handles business rule enforcement
-   - Transaction boundaries (if implemented)
+3. **UseCase Layer** (`app/usecase/`)
+   - Business logic implementation
+   - Transaction management
+   - Input validation via validators
+   - Error handling
 
-3. **Service Layer** (`app/service/`)
-   - Direct database operations via GORM
-   - No business logic, only data access
-   - Returns domain models
+4. **Service Layer** (`app/service/`)
+   - Data access logic
+   - Database queries
+   - External service integration
 
-4. **Model Layer** (`app/model/`)
-   - Domain entities with GORM tags
-   - All models embed `BaseModel` for common fields (ID, timestamps, soft delete)
-   - Relationships defined via GORM tags
+5. **Model Layer** (`app/model/`)
+   - Domain entities
+   - Database schema definitions
+   - Business rules
 
-### Key Architectural Patterns
+6. **Validation Layer** (`app/usecase/validation/`)
+   - Centralized validation logic
+   - Reusable validation methods
+   - Domain-specific validators
 
-**Aggregator Pattern**: The application uses `BaseController`, `BaseUseCase`, and `BaseService` structs to aggregate all controllers, use cases, and services respectively. This simplifies dependency injection in `main.go`.
+## Key Patterns and Conventions
 
-**Dependency Injection**: Constructor-based injection flows from main.go:
+### Dependency Injection
+- Constructor-based injection
+- Aggregated through Base structs (BaseController, BaseUseCase, BaseService)
+- Clean separation of concerns
+
+### Error Handling
+- Custom error types in `app/errors/`
+- Middleware-based error handling
+- Consistent error response format
+
+### Database
+- GORM with PostgreSQL
+- Soft deletes enabled
+- Auto-migration with seed data
+- Upsert pattern for seed data (prevents duplicates)
+
+### API Documentation
+- Swagger/OpenAPI integration
+- Inline documentation in controllers
+- Auto-generated via swag tool
+- Available at `/swagger/index.html`
+
+### Testing Approach
+```bash
+# Run all tests
+make test
+
+# Run specific package tests
+docker-compose run --rm app go test ./app/usecase/... -v
+
+# Run with coverage
+docker-compose run --rm app go test -cover ./...
 ```
-DB → BaseService → BaseUseCase → BaseController → Router
+
+## Project Structure
+
+```
+gin-practice/
+├── app/
+│   ├── controller/     # HTTP handlers
+│   ├── usecase/        # Business logic
+│   │   ├── request/    # Request DTOs
+│   │   └── validation/ # Validators
+│   ├── service/        # Data access
+│   ├── model/          # Domain models
+│   ├── routes/         # Router setup
+│   ├── middleware/     # HTTP middleware
+│   ├── errors/         # Custom errors
+│   └── infra/          # Infrastructure
+│       └── seed/       # Database seeds
+├── docs/               # Swagger files
+├── Makefile           # Development commands
+├── docker-compose.yml  # Container setup
+├── Dockerfile         # App container
+└── main.go            # Entry point
 ```
 
-**Error Handling**: Custom error types in `app/errors/` with predefined HTTP status codes:
-- `NewValidationError()` → 400 Bad Request
-- `NewNotFoundError()` → 404 Not Found
-- `NewInternalError()` → 500 Internal Server Error
+## Recent Features
 
-**Soft Deletes**: All models support soft deletion via GORM's `DeletedAt` field in `BaseModel`.
+### Price Setting System
+- Store-specific pricing with sale functionality
+- Time-based pricing with start/end dates
+- Automatic price activation/deactivation
+- API endpoints under `/inventories/:id/prices`
 
-**Multi-tenancy**: The `Tenant` model represents different locations/branches. `Inventory` links products to specific tenants.
+### Order Management
+- Complete order workflow with status tracking
+- Inventory management integration
+- Transaction support for data consistency
+- User order history at `/users/:id/orders`
 
-### Adding New Features
+### Validation Framework
+- Centralized validation in `app/usecase/validation/`
+- Base validator with common methods
+- Domain-specific validators for each entity
+- Consistent error messages in Japanese
 
-To add a new feature (e.g., "Order"):
-
-1. Create model in `app/model/order_model.go`
-2. Create service in `app/service/order_service.go`
-3. Create use case in `app/usecase/order_usecase.go`
-4. Create controller in `app/controller/order_controller.go`
-5. Add to aggregators in respective `base_*.go` files
-6. Wire up in `main.go`
-7. Add routes in `app/routes/routes.go`
-
-### Database Schema Management
-
-- **Auto-migration** runs on startup via `db.AutoMigrate()` in main.go
-- Models define schema through GORM tags
-- Foreign keys and indexes are defined in model structs
-
-### Environment Variables
+## Environment Variables
 
 ```bash
-DB_HOST=db          # Database host (default: "db" for Docker)
-DB_PORT=5432        # Database port
-DB_USER=user        # Database user
-DB_PASSWORD=password # Database password
-DB_NAME=myapp       # Database name
-SERVER_PORT=8080    # Application port
-ENV=development     # Environment (development/production)
+# Database Configuration (in docker-compose.yml)
+POSTGRES_USER=user
+POSTGRES_PASSWORD=password
+POSTGRES_DB=myapp
+
+# Application Configuration
+GIN_MODE=debug  # Set to "release" for production
 ```
 
-### API Endpoints
+## Common Tasks
 
-- `GET/POST/PUT/DELETE /users` - User management
-- `GET/POST/PUT/DELETE /products` - Product management
-- `GET/POST/DELETE /inventories` - Inventory management
-- `POST /inventories/purchase` - Purchase from inventory
-- `GET/POST/PUT/DELETE /tenants` - Tenant management
-- `GET /ping` - Health check
+### Adding a New Feature
+1. Create model in `app/model/`
+2. Add to `GetModels()` in `base_model.go`
+3. Create service in `app/service/`
+4. Create usecase in `app/usecase/`
+5. Create controller in `app/controller/`
+6. Add routes in `app/routes/routes.go`
+7. Update Base aggregators
+8. Generate Swagger docs: `make swagger`
 
-### Code Conventions from Existing Documentation
+### Debugging Database Issues
+```bash
+# Check current data
+make db-shell
+\dt              # List tables
+\d table_name    # Describe table
+SELECT * FROM table_name;
 
-Based on `.cursor/rules/project.mdc`:
+# Reset if needed
+make reset       # Full reset
+```
 
-- **File naming**: Snake case (e.g., `user_controller.go`)
-- **Package names**: Lowercase snake case
-- **Struct names**: PascalCase (e.g., `UserController`)
-- **Method names**: PascalCase (e.g., `GetUser`)
-- **Variable names**: camelCase (e.g., `userID`)
+### Troubleshooting
 
-**Import order**:
-1. Internal packages (`myapp/app/...`)
-2. External packages (`github.com/...`)
-3. Standard library
+**Container won't start:**
+```bash
+make clean-all   # Remove everything
+make reset       # Fresh start
+```
 
-### Testing
+**Port already in use:**
+```bash
+# Check what's using port 8080
+lsof -i :8080
+# Kill the process or change port in docker-compose.yml
+```
 
-Currently, no test files exist in the project. When adding tests:
-- Place test files next to the code they test
-- Name test files with `_test.go` suffix
-- Use table-driven tests for comprehensive coverage
+**Database connection errors:**
+```bash
+make down
+make clean
+make up
+make logs  # Check for specific errors
+```
+
+## Best Practices
+
+1. **Always use Makefile commands** instead of raw docker-compose
+2. **Run tests before committing**: `make test`
+3. **Keep Swagger docs updated**: `make swagger` after API changes
+4. **Use proper error handling** with custom error types
+5. **Follow existing patterns** for consistency
+6. **Use transactions** for operations affecting multiple tables
+7. **Implement proper validation** in the validation layer

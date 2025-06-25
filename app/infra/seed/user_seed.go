@@ -20,19 +20,12 @@ func SeedUsers(db *gorm.DB) error {
 	}
 
 	for _, user := range users {
-		// 既存のユーザーをメールアドレスでチェック
-		var existingUser model.User
-		if err := db.Where("email = ?", user.Email).First(&existingUser).Error; err != nil {
-			if err == gorm.ErrRecordNotFound {
-				// 存在しない場合は作成
-				if err := db.Create(&user).Error; err != nil {
-					return err
-				}
-			} else {
-				return err
-			}
+		// Upsert: メールアドレスをキーとして存在する場合は更新、存在しない場合は作成
+		if err := db.Where("email = ?", user.Email).
+			Assign(user).
+			FirstOrCreate(&user).Error; err != nil {
+			return err
 		}
-		// 既に存在する場合はスキップ
 	}
 
 	return nil
