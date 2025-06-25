@@ -52,3 +52,11 @@ func (uc *TenantUseCase) List() ([]model.Tenant, error) {
 	}
 	return tenants, nil
 }
+
+func (uc *TenantUseCase) GetByID(id uint) (*model.Tenant, error) {
+	tenant, err := uc.tenantService.GetTenantDetail(id)
+	if err != nil {
+		return nil, errors.NewNotFoundError("テナントが見つかりません")
+	}
+	return tenant, nil
+}
