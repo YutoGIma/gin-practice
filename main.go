@@ -49,10 +49,11 @@ func main() {
 	// Router setup
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.CORS())
 	r.Use(middleware.Logger(logger))
 	r.Use(middleware.ErrorHandler())
 
-	r = routes.SetupRouter(baseController)
+	routes.SetupRouter(r, baseController)
 
 	r.Run(":" + cfg.ServerPort)
 }

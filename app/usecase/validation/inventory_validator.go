@@ -23,15 +23,15 @@ func (v InventoryValidator) ValidatePurchaseRequest(req request.InventoryPurchas
 	if err := v.ValidateID(req.ProductID, "商品ID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidateID(req.TenantID, "テナントID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidatePositiveNumber(req.Quantity, "購入数量"); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -40,15 +40,15 @@ func (v InventoryValidator) ValidateRestockRequest(req request.InventoryRestockR
 	if err := v.ValidateID(req.ProductID, "商品ID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidateID(req.TenantID, "テナントID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidatePositiveNumber(req.Quantity, "入荷数量"); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -57,15 +57,15 @@ func (v InventoryValidator) ValidateUpdateRequest(req request.InventoryUpdateReq
 	if err := v.ValidateID(req.ProductID, "商品ID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidateID(req.TenantID, "テナントID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidateNonNegativeNumber(req.Quantity, "在庫数量"); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 

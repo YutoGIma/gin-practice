@@ -12,11 +12,11 @@ func SeedPriceSettings(db *gorm.DB) error {
 	tomorrow := now.AddDate(0, 0, 1)
 	nextWeek := now.AddDate(0, 0, 7)
 	nextMonth := now.AddDate(0, 1, 0)
-	
+
 	// セール価格用のポインタ作成
 	salePrice1 := 800.0
 	salePrice2 := 1200.0
-	
+
 	// 終了日用のポインタ作成
 	endDate1 := nextWeek
 	endDate2 := nextMonth
@@ -57,7 +57,7 @@ func SeedPriceSettings(db *gorm.DB) error {
 		db.Model(&model.PriceSetting{}).
 			Where("inventory_id = ?", priceSetting.InventoryID).
 			Update("is_active", false)
-		
+
 		// 新しい価格設定を作成
 		if err := db.Create(&priceSetting).Error; err != nil {
 			return err

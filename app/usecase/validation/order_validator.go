@@ -24,22 +24,22 @@ func (v OrderValidator) ValidateCreateOrderRequest(req request.CreateOrderReques
 	if err := v.ValidateID(req.UserID, "ユーザーID"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidateID(req.TenantID, "テナントID"); err != nil {
 		return err
 	}
-	
+
 	if len(req.OrderItems) == 0 {
 		return errors.NewValidationError("注文明細は1件以上必要です")
 	}
-	
+
 	// Validate each order item
 	for i, item := range req.OrderItems {
 		if err := v.validateOrderItem(item, i+1); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
@@ -48,11 +48,11 @@ func (v OrderValidator) validateOrderItem(item request.OrderItemRequest, index i
 	if err := v.ValidateID(item.ProductID, fmt.Sprintf("注文明細%dの商品ID", index)); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidatePositiveNumber(item.Quantity, fmt.Sprintf("注文明細%dの数量", index)); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -61,11 +61,11 @@ func (v OrderValidator) ValidateCancelOrder(order *model.Order) error {
 	if order == nil {
 		return errors.NewNotFoundError("注文が見つかりません")
 	}
-	
+
 	if order.Status != model.OrderStatusPending {
 		return errors.NewValidationError("この注文はキャンセルできません。ステータス: " + string(order.Status))
 	}
-	
+
 	return nil
 }
 

@@ -38,12 +38,12 @@ func (s *PriceSettingService) GetPriceSettingByID(id uint) (*model.PriceSetting,
 func (s *PriceSettingService) GetCurrentPriceSetting(inventoryID uint) (*model.PriceSetting, error) {
 	var priceSetting model.PriceSetting
 	now := time.Now()
-	
-	err := s.DB.Where("inventory_id = ? AND is_active = ? AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)", 
+
+	err := s.DB.Where("inventory_id = ? AND is_active = ? AND start_date <= ? AND (end_date IS NULL OR end_date >= ?)",
 		inventoryID, true, now, now).
 		Order("start_date DESC").
 		First(&priceSetting).Error
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -64,11 +64,11 @@ func (s *PriceSettingService) DeletePriceSetting(id uint) error {
 
 func (s *PriceSettingService) CheckOverlappingPeriods(inventoryID uint, startDate time.Time, endDate *time.Time, excludeID *uint) (bool, error) {
 	query := s.DB.Where("inventory_id = ? AND is_active = ?", inventoryID, true)
-	
+
 	if excludeID != nil {
 		query = query.Where("id != ?", *excludeID)
 	}
-	
+
 	// Check for overlapping periods
 	if endDate != nil {
 		// Both start and end dates are specified
@@ -77,7 +77,7 @@ func (s *PriceSettingService) CheckOverlappingPeriods(inventoryID uint, startDat
 		// Only start date is specified (infinite end)
 		query = query.Where("(end_date IS NULL OR end_date >= ?)", startDate)
 	}
-	
+
 	var count int64
 	err := query.Model(&model.PriceSetting{}).Count(&count).Error
 	return count > 0, err

@@ -176,7 +176,7 @@ func (c InventoryController) RestockInventory(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "在庫を入荷しました",
+		"message":   "在庫を入荷しました",
 		"inventory": inventory,
 	})
 }

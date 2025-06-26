@@ -16,9 +16,9 @@ func (r InventoryPurchaseRequest) Validate() error {
 }
 
 type InventoryRestockRequest struct {
-	ProductID uint `json:"product_id" binding:"required"`
-	TenantID  uint `json:"tenant_id" binding:"required"`
-	Quantity  int  `json:"quantity" binding:"required,min=1"`
+	ProductID uint   `json:"product_id" binding:"required"`
+	TenantID  uint   `json:"tenant_id" binding:"required"`
+	Quantity  int    `json:"quantity" binding:"required,min=1"`
 	Note      string `json:"note"`
 }
 

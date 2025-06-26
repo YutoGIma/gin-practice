@@ -6,20 +6,19 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	
+
 	_ "myapp/docs" // swagger docs
 )
 
-func SetupRouter(baseController controller.BaseController) *gin.Engine {
-	r := gin.Default()
-	
+func SetupRouter(r *gin.Engine, baseController controller.BaseController) *gin.Engine {
+
 	// Health check
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
-	
+
 	// User endpoints
 	userGroup := r.Group("/users")
 	{
@@ -30,7 +29,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		userGroup.DELETE("/:id", baseController.UserController.DeleteUser)
 		userGroup.GET("/:id/orders", baseController.OrderController.GetUserOrders)
 	}
-	
+
 	// Product endpoints
 	productGroup := r.Group("/products")
 	{
@@ -39,7 +38,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		productGroup.PUT("/:id", baseController.ProductController.UpdateProduct)
 		productGroup.DELETE("/:id", baseController.ProductController.DeleteProduct)
 	}
-	
+
 	// Inventory endpoints
 	inventoryGroup := r.Group("/inventories")
 	{
@@ -48,7 +47,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		inventoryGroup.PUT("/:id", baseController.InventoryController.UpdateInventory)
 		inventoryGroup.DELETE("/:id", baseController.InventoryController.DeleteInventory)
 		inventoryGroup.POST("/restock", baseController.InventoryController.RestockInventory)
-		
+
 		// Price setting endpoints
 		inventoryGroup.POST("/:id/prices", baseController.PriceSettingController.CreatePriceSetting)
 		inventoryGroup.GET("/:id/prices", baseController.PriceSettingController.GetPriceSettingsByInventoryID)
@@ -56,7 +55,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		inventoryGroup.PUT("/:id/prices/:price_id", baseController.PriceSettingController.UpdatePriceSetting)
 		inventoryGroup.DELETE("/:id/prices/:price_id", baseController.PriceSettingController.DeletePriceSetting)
 	}
-	
+
 	// Tenant endpoints
 	tenantGroup := r.Group("/tenants")
 	{
@@ -66,7 +65,7 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		tenantGroup.PUT("/:id", baseController.TenantController.UpdateTenant)
 		tenantGroup.DELETE("/:id", baseController.TenantController.DeleteTenant)
 	}
-	
+
 	// Order endpoints
 	orderGroup := r.Group("/orders")
 	{
@@ -75,9 +74,9 @@ func SetupRouter(baseController controller.BaseController) *gin.Engine {
 		orderGroup.POST("", baseController.OrderController.CreateOrder)
 		orderGroup.POST("/:id/cancel", baseController.OrderController.CancelOrder)
 	}
-	
+
 	// Swagger documentation
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	
+
 	return r
 }

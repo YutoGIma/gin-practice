@@ -25,19 +25,19 @@ func (p *PriceSetting) IsCurrentlyActive() bool {
 	if !p.IsActive {
 		return false
 	}
-	
+
 	now := time.Now()
-	
+
 	// Check if current time is after start date
 	if now.Before(p.StartDate) {
 		return false
 	}
-	
+
 	// Check if end date is set and current time is after end date
 	if p.EndDate != nil && now.After(*p.EndDate) {
 		return false
 	}
-	
+
 	return true
 }
 

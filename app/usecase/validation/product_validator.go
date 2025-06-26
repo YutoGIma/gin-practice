@@ -24,19 +24,19 @@ func (v ProductValidator) ValidateCreateProduct(p model.Product) error {
 	if err := v.ValidateRequiredString(p.Name, "商品名"); err != nil {
 		return err
 	}
-	
+
 	if err := v.ValidateBarcode(p.Barcode); err != nil {
 		return err
 	}
-	
+
 	if p.CategoryId <= 0 {
 		return errors.New("カテゴリIDは必須です")
 	}
-	
+
 	if p.PurchasePrice < 0 {
 		return errors.New("仕入れ価格は0以上である必要があります")
 	}
-	
+
 	return nil
 }
 
@@ -63,6 +63,6 @@ func (v ProductValidator) ValidateBarcode(barcode string) error {
 	if checkDigit != lastDigit {
 		return errors.New("正しいバーコードを入力してください")
 	}
-	
+
 	return nil
 }

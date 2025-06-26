@@ -23,23 +23,23 @@ func (v PriceSettingValidator) ValidateCreatePriceSettingRequest(req request.Cre
 	if err := v.ValidateID(req.InventoryID, "在庫ID"); err != nil {
 		return err
 	}
-	
+
 	if req.Price <= 0 {
 		return errors.NewValidationError("価格は0より大きい値である必要があります")
 	}
-	
+
 	if req.SalePrice != nil && *req.SalePrice <= 0 {
 		return errors.NewValidationError("セール価格は0より大きい値である必要があります")
 	}
-	
+
 	if req.SalePrice != nil && *req.SalePrice >= req.Price {
 		return errors.NewValidationError("セール価格は通常価格より安く設定してください")
 	}
-	
+
 	if err := v.validateDateRange(req.StartDate, req.EndDate); err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -48,50 +48,50 @@ func (v PriceSettingValidator) ValidateUpdatePriceSettingRequest(req request.Upd
 	if req.Price != nil && *req.Price <= 0 {
 		return errors.NewValidationError("価格は0より大きい値である必要があります")
 	}
-	
+
 	if req.SalePrice != nil && *req.SalePrice != nil && **req.SalePrice <= 0 {
 		return errors.NewValidationError("セール価格は0より大きい値である必要があります")
 	}
-	
+
 	if req.Price != nil && req.SalePrice != nil && *req.SalePrice != nil {
 		if **req.SalePrice >= *req.Price {
 			return errors.NewValidationError("セール価格は通常価格より安く設定してください")
 		}
 	}
-	
+
 	if req.StartDate != nil && req.EndDate != nil {
 		if err := v.validateDateRange(*req.StartDate, *req.EndDate); err != nil {
 			return err
 		}
 	}
-	
+
 	return nil
 }
 
 // validateDateRange validates that start date is before end date
 func (v PriceSettingValidator) validateDateRange(startDate time.Time, endDate *time.Time) error {
 	now := time.Now()
-	
+
 	// Start date should not be too far in the past (more than 1 day)
 	if startDate.Before(now.AddDate(0, 0, -1)) {
 		return errors.NewValidationError("開始日は過去1日以内で設定してください")
 	}
-	
+
 	if endDate != nil {
 		if endDate.Before(startDate) {
 			return errors.NewValidationError("終了日は開始日以降で設定してください")
 		}
-		
+
 		if endDate.Before(now) {
 			return errors.NewValidationError("終了日は現在日時以降で設定してください")
 		}
-		
+
 		// End date should not be more than 1 year in the future
 		if endDate.After(now.AddDate(1, 0, 0)) {
 			return errors.NewValidationError("終了日は1年以内で設定してください")
 		}
 	}
-	
+
 	return nil
 }
 

@@ -12,10 +12,10 @@ type CreatePriceSettingRequest struct {
 }
 
 type UpdatePriceSettingRequest struct {
-	Price     *float64   `json:"price,omitempty"`
-	SalePrice **float64  `json:"sale_price,omitempty"`
-	StartDate *time.Time `json:"start_date,omitempty"`
+	Price     *float64    `json:"price,omitempty"`
+	SalePrice **float64   `json:"sale_price,omitempty"`
+	StartDate *time.Time  `json:"start_date,omitempty"`
 	EndDate   **time.Time `json:"end_date,omitempty"`
-	IsActive  *bool      `json:"is_active,omitempty"`
-	Note      *string    `json:"note,omitempty"`
+	IsActive  *bool       `json:"is_active,omitempty"`
+	Note      *string     `json:"note,omitempty"`
 }
